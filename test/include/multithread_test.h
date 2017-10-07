@@ -8,6 +8,10 @@
 #ifndef TEST_INCLUDE_MULTITHREAD_TEST_H_
 #define TEST_INCLUDE_MULTITHREAD_TEST_H_
 
+#include <time.h>
+#if __struct_timespec_defined
+#define _TIMESPEC_DEFINED
+#endif
 #include <pthread.h>
 
 class ThreadKernel {

@@ -11,3 +11,4 @@ void DummyMemoryManager::IncreaseReference() {
 }
 void DummyMemoryManager::DecreaseReference() {
 }
+DummyMemoryManager DummyManager;

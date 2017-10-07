@@ -58,18 +58,41 @@ TEST_F(PredefinedPointersTest, TestStdPointerDeleteOperation)
 class TestAcceptManager {
 private:
 	MemoryManager *m_Manager;
+	int *m_Record;
 
 public:
-	TestAcceptManager(MemoryManager *manager) :
-		m_Manager(manager) {
+	TestAcceptManager(MemoryManager *manager, int *record) :
+		m_Manager(manager),
+		m_Record(record) {
 	}
 	void TestManager() {
 		m_Manager->IncreaseReference();
+	}
+	void Release() {
+		m_Manager->DecreaseReference();
+	}
+	static void operator delete(void *p) {
+		TestAcceptManager *object = reinterpret_cast<TestAcceptManager*>(p);
+		if (object->m_Record != nullptr) {
+			++(*object->m_Record);
+		}
+		::operator delete(p);
+	}
+	TestAcceptManager* Get() {
+		return this;
 	}
 };
 
 TEST_F(PredefinedPointersTest, TestStdPointerSelfManagerParameter)
 {
-	StdPointer<TestAcceptManager> testPointer(SelfManager());
-	testPointer->TestManager();
+	int deleteCount = 0;
+	TestAcceptManager *ptr = nullptr;
+	{
+		StdPointer<TestAcceptManager> testPointer(Self, &deleteCount);
+		testPointer->TestManager();
+		ptr = testPointer->Get();
+	}
+	ASSERT_EQ(0, deleteCount);
+	ptr->Release();
+	ASSERT_EQ(1, deleteCount);
 }
