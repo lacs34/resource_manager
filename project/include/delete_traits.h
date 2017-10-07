@@ -56,6 +56,14 @@ public:
 	}
 };
 
+class VectorDeleteTraits {
+public:
+	template<typename OBJECT_TYPE>
+	static void DeleteObject(OBJECT_TYPE *object) {
+		delete[] object;
+	}
+};
+
 class DestructTraits {
 public:
 	template<typename OBJECT_TYPE>

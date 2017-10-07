@@ -10,6 +10,10 @@
 
 #include <exception>
 
+class OutOfRangeException :
+	public std::exception {
+};
+
 class PosixException :
 	public std::exception {
 private:

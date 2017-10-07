@@ -39,6 +39,8 @@ public:
 template<typename OBJECT_TYPE, typename DESTROY_TRAITS>
 using StdDeleteOperation = ObjectDeleteOperation<OBJECT_TYPE, StdDeleteTraits, DESTROY_TRAITS>;
 template<typename OBJECT_TYPE, typename DESTROY_TRAITS>
+using VectorDeleteOperation = ObjectDeleteOperation<OBJECT_TYPE, VectorDeleteTraits, DESTROY_TRAITS>;
+template<typename OBJECT_TYPE, typename DESTROY_TRAITS>
 using FreeDeleteOperation = ObjectDeleteOperation<OBJECT_TYPE, ObjectFreeTraits, DESTROY_TRAITS>;
 
 template<typename DESTROY_TRAITS>
