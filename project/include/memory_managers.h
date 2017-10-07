@@ -8,6 +8,7 @@
 #ifndef PROJECT_INCLUDE_MEMORY_MANAGERS_H_
 #define PROJECT_INCLUDE_MEMORY_MANAGERS_H_
 
+#include <atomic>
 #include "memory_manager_interface.h"
 #include "delete_traits.h"
 
@@ -24,7 +25,7 @@ class TReferenceCountMemoryManager :
 	public MemoryManager {
 private:
 	DeleteOperation *m_DeleteOperation;
-	unsigned long m_ReferenceCount;
+	typename THREAD_TRAITS::REFERENCE_COUNT_TYPE m_ReferenceCount;
 
 public:
 	TReferenceCountMemoryManager(DeleteOperation *deleteOperation) :
@@ -45,21 +46,24 @@ public:
 #include <iostream>
 class SingleThreadTraits {
 public:
-	static void Increase(unsigned long &referenceCount) {
+	typedef unsigned long REFERENCE_COUNT_TYPE;
+	static void Increase(REFERENCE_COUNT_TYPE &referenceCount) {
 		++referenceCount;
 	}
-	static unsigned long Decrease(unsigned long &referenceCount) {
+	static unsigned long Decrease(REFERENCE_COUNT_TYPE &referenceCount) {
 		--referenceCount;
 		return referenceCount;
 	}
 };
 class MultiThreadTraits {
 public:
-	static void Increase(unsigned long &referenceCount) {
-		__sync_add_and_fetch(&referenceCount, 1UL);
+	typedef std::atomic<unsigned long> REFERENCE_COUNT_TYPE;
+	static void Increase(REFERENCE_COUNT_TYPE &referenceCount) {
+		++referenceCount;
 	}
-	static unsigned long Decrease(unsigned long &referenceCount) {
-		unsigned long updatedValue = __sync_sub_and_fetch(&referenceCount, 1UL);
+	static unsigned long Decrease(REFERENCE_COUNT_TYPE &referenceCount) {
+		
+		unsigned long updatedValue = referenceCount.fetch_sub(1L, std::memory_order_seq_cst);
 		return updatedValue;
 	}
 };
