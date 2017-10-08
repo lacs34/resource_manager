@@ -22,7 +22,7 @@ class ObjectCreator<OBJECT_TYPE, const SelfManager*, LEFTOVER_ARGS...> {
 public:
 	template<typename ...CONVERTED_ARGS>
 	static inline OBJECT_TYPE* CreateObject(MemoryManager *manager, const SelfManager *current, LEFTOVER_ARGS... leftover, CONVERTED_ARGS... converted) {
-		ObjectCreator<OBJECT_TYPE, LEFTOVER_ARGS...>::CreateObject(manager, leftover..., converted..., manager);
+		return ObjectCreator<OBJECT_TYPE, LEFTOVER_ARGS...>::CreateObject(manager, leftover..., converted..., manager);
 	}
 };
 
@@ -40,7 +40,7 @@ class ObjectCreator<OBJECT_TYPE, CURRENT_ARG, LEFTOVER_ARGS...> {
 public:
 	template<typename ...CONVERTED_ARGS>
 	static inline OBJECT_TYPE* CreateObject(MemoryManager *manager, CURRENT_ARG current, LEFTOVER_ARGS... leftover, CONVERTED_ARGS... converted) {
-		ObjectCreator<OBJECT_TYPE, LEFTOVER_ARGS...>::CreateObject(manager, leftover..., converted..., current);
+		return ObjectCreator<OBJECT_TYPE, LEFTOVER_ARGS...>::CreateObject(manager, leftover..., converted..., current);
 	}
 };
 
