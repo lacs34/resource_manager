@@ -12,73 +12,61 @@
 #if __struct_timespec_defined
 #define _TIMESPEC_DEFINED
 #endif
-#include <pthread.h>
+#include <thread>
+#include <future>
 
 class ThreadKernel {
 public:
 	virtual void Run() = 0;
 	virtual ~ThreadKernel() { }
 };
-
+void f() // f sleeps for 1 second,
+{ // then returns
+}
 template<unsigned THREAD_COUNT>
 class MultiThreadController {
 private:
-	pthread_t m_Threads[THREAD_COUNT];
-	pthread_barrier_t m_StartBarrier;
-	struct ThreadArgument {
-		ThreadKernel *m_Kernel;
-		MultiThreadController *m_Controller;
-	};
-	ThreadArgument m_Arguments[THREAD_COUNT];
+	std::future<void> m_Futures[THREAD_COUNT];
+	std::condition_variable m_StartCoindition;
+	std::mutex m_StartMutex;
+	std::atomic<unsigned> m_ReadyThreadCount;
 
-	static void* ThreadStartFunction(void *arg) {
-		ThreadArgument *threadArgument = reinterpret_cast<ThreadArgument*>(arg);
-		pthread_barrier_wait(&threadArgument->m_Controller->m_StartBarrier);
-		threadArgument->m_Kernel->Run();
-		return nullptr;
+	static void ThreadStartFunction(ThreadKernel *kernel, MultiThreadController *controller) {
+		std::unique_lock<std::mutex> lock(controller->m_StartMutex);
+		controller->m_StartCoindition.wait(lock);
+		++(controller->m_ReadyThreadCount);
+		kernel->Run();
+	}
+
+	void StartThreads() {
+		std::unique_lock<std::mutex> lock(m_StartMutex);
+		while (m_ReadyThreadCount < THREAD_COUNT) {
+			lock.unlock();
+			lock.lock();
+		}
+		m_StartCoindition.notify_all();
 	}
 
 public:
 	MultiThreadController() {
 	}
 	void Run(ThreadKernel *kernels[THREAD_COUNT]) {
-		int err = pthread_barrier_init(&m_StartBarrier, nullptr, THREAD_COUNT);
-		if (err != 0) {
-			throw PosixException(err);
-		}
+		m_ReadyThreadCount.store(0U);
 		for (size_t i = 0; i < THREAD_COUNT; ++i) {
-			m_Arguments[i].m_Kernel = kernels[i];
-			m_Arguments[i].m_Controller = this;
-			err = pthread_create(m_Threads + i, nullptr, &ThreadStartFunction, reinterpret_cast<void*>(m_Arguments + i));
-			if (err != 0) {
-				throw PosixException(err);
-			}
+			m_Futures[i] = std::async(&ThreadStartFunction, kernels[i], this);
 		}
+		StartThreads();
 	}
-	void Run(ThreadKernel *kernels) {
-		int err = pthread_barrier_init(&m_StartBarrier, nullptr, THREAD_COUNT);
-		if (err != 0) {
-			throw PosixException(err);
-		}
+	void Run(ThreadKernel *kernel) {
+		m_ReadyThreadCount.store(0U);
 		for (unsigned i = 0; i < THREAD_COUNT; ++i) {
-			m_Arguments[i].m_Kernel = kernels;
-			m_Arguments[i].m_Controller = this;
-			err = pthread_create(m_Threads + i, nullptr, &ThreadStartFunction, reinterpret_cast<void*>(m_Arguments + i));
-			if (err != 0) {
-				throw PosixException(err);
-			}
+			m_Futures[i] = std::async(&ThreadStartFunction, kernel, this);
 		}
+		StartThreads();
 	}
 	void WaitToEnd() {
 		for (size_t i = 0; i < THREAD_COUNT; ++i) {
-			int err = pthread_join(m_Threads[i], nullptr);
-			if (err != 0) {
-				throw PosixException(err);
-			}
-		}
-		int err = pthread_barrier_destroy(&m_StartBarrier);
-		if (err != 0) {
-			throw PosixException(err);
+			m_Futures[i].wait();
 		}
 	}
 };
