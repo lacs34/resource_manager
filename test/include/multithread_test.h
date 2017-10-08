@@ -30,19 +30,20 @@ private:
 	std::condition_variable m_StartCoindition;
 	std::mutex m_StartMutex;
 	std::atomic<unsigned> m_ReadyThreadCount;
+	std::condition_variable m_ThreadReadyCoindition;
 
 	static void ThreadStartFunction(ThreadKernel *kernel, MultiThreadController *controller) {
 		std::unique_lock<std::mutex> lock(controller->m_StartMutex);
-		controller->m_StartCoindition.wait(lock);
 		++(controller->m_ReadyThreadCount);
+		controller->m_ThreadReadyCoindition.notify_one();
+		controller->m_StartCoindition.wait(lock);
 		kernel->Run();
 	}
 
 	void StartThreads() {
 		std::unique_lock<std::mutex> lock(m_StartMutex);
 		while (m_ReadyThreadCount < THREAD_COUNT) {
-			lock.unlock();
-			lock.lock();
+			m_ThreadReadyCoindition.wait(lock);
 		}
 		m_StartCoindition.notify_all();
 	}
