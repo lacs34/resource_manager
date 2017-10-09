@@ -13,54 +13,66 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="头文件\string_and_encoding">
+      <UniqueIdentifier>{e4ef5bfd-139e-4a27-a897-43fcc20015a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\collections">
+      <UniqueIdentifier>{f4f3d60b-03c6-426d-ad4d-200beb6816e2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\project\source\memory_managers.cpp">
+    <ClCompile Include="..\..\..\project\source\memory_managers.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\project\source\self_manager.cpp">
+    <ClCompile Include="..\..\..\project\source\self_manager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\project\include\arrays.h">
+    <ClInclude Include="..\..\..\project\include\arrays.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\project\include\common_definition.h">
+    <ClInclude Include="..\..\..\project\include\common_definition.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\project\include\compare_result.h">
+    <ClInclude Include="..\..\..\project\include\compare_result.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\project\include\delete_operations.h">
+    <ClInclude Include="..\..\..\project\include\delete_operations.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\project\include\delete_traits.h">
+    <ClInclude Include="..\..\..\project\include\delete_traits.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\project\include\exceptions.h">
+    <ClInclude Include="..\..\..\project\include\exceptions.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\project\include\memory_manager_interface.h">
+    <ClInclude Include="..\..\..\project\include\memory_manager_interface.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\project\include\memory_managers.h">
+    <ClInclude Include="..\..\..\project\include\memory_managers.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\project\include\pointer_holder.h">
+    <ClInclude Include="..\..\..\project\include\pointer_holder.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\project\include\predefined_array.h">
+    <ClInclude Include="..\..\..\project\include\predefined_array.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\project\include\predefined_smart_pointers.h">
+    <ClInclude Include="..\..\..\project\include\predefined_smart_pointers.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\project\include\self_manager.h">
+    <ClInclude Include="..\..\..\project\include\self_manager.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\project\include\smart_pointer.h">
+    <ClInclude Include="..\..\..\project\include\smart_pointer.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\project\include\string_and_encoding\string_lib.h">
+      <Filter>头文件\string_and_encoding</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\project\include\collections\collections_interfaces.h">
+      <Filter>头文件\collections</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

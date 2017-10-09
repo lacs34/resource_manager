@@ -21,39 +21,39 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\test\gtest_main.cc">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\test\source\test_delete_operations.cpp">
+    <ClCompile Include="..\..\..\test\source\test_delete_operations.cpp">
       <Filter>源文件\source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test\source\test_delete_traits.cpp">
+    <ClCompile Include="..\..\..\test\source\test_delete_traits.cpp">
       <Filter>源文件\source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test\source\test_memory_managers.cpp">
+    <ClCompile Include="..\..\..\test\source\test_memory_managers.cpp">
       <Filter>源文件\source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test\source\test_predefined_pointers.cpp">
+    <ClCompile Include="..\..\..\test\source\test_predefined_pointers.cpp">
       <Filter>源文件\source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test\source\string_and_encoding\test_string.cpp">
+    <ClCompile Include="..\..\..\test\source\string_and_encoding\test_string.cpp">
       <Filter>源文件\source\string_and_encoding</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\test\gtest_main.cc">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\test\include\multithread_test.h">
+    <ClInclude Include="..\..\..\test\include\multithread_test.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test\include\test_delete_count.h">
+    <ClInclude Include="..\..\..\test\include\test_delete_count.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test\include\test_delete_operation.h">
+    <ClInclude Include="..\..\..\test\include\test_delete_operation.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test\include\test_delete_traits.h">
+    <ClInclude Include="..\..\..\test\include\test_delete_traits.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test\include\test_destructor_invoked_object.h">
+    <ClInclude Include="..\..\..\test\include\test_destructor_invoked_object.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

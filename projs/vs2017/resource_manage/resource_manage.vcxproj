@@ -19,23 +19,25 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\project\source\memory_managers.cpp" />
-    <ClCompile Include="..\..\project\source\self_manager.cpp" />
+    <ClCompile Include="..\..\..\project\source\memory_managers.cpp" />
+    <ClCompile Include="..\..\..\project\source\self_manager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\project\include\arrays.h" />
-    <ClInclude Include="..\..\project\include\common_definition.h" />
-    <ClInclude Include="..\..\project\include\compare_result.h" />
-    <ClInclude Include="..\..\project\include\delete_operations.h" />
-    <ClInclude Include="..\..\project\include\delete_traits.h" />
-    <ClInclude Include="..\..\project\include\exceptions.h" />
-    <ClInclude Include="..\..\project\include\memory_managers.h" />
-    <ClInclude Include="..\..\project\include\memory_manager_interface.h" />
-    <ClInclude Include="..\..\project\include\pointer_holder.h" />
-    <ClInclude Include="..\..\project\include\predefined_array.h" />
-    <ClInclude Include="..\..\project\include\predefined_smart_pointers.h" />
-    <ClInclude Include="..\..\project\include\self_manager.h" />
-    <ClInclude Include="..\..\project\include\smart_pointer.h" />
+    <ClInclude Include="..\..\..\project\include\arrays.h" />
+    <ClInclude Include="..\..\..\project\include\collections\collections_interfaces.h" />
+    <ClInclude Include="..\..\..\project\include\common_definition.h" />
+    <ClInclude Include="..\..\..\project\include\compare_result.h" />
+    <ClInclude Include="..\..\..\project\include\delete_operations.h" />
+    <ClInclude Include="..\..\..\project\include\delete_traits.h" />
+    <ClInclude Include="..\..\..\project\include\exceptions.h" />
+    <ClInclude Include="..\..\..\project\include\memory_managers.h" />
+    <ClInclude Include="..\..\..\project\include\memory_manager_interface.h" />
+    <ClInclude Include="..\..\..\project\include\pointer_holder.h" />
+    <ClInclude Include="..\..\..\project\include\predefined_array.h" />
+    <ClInclude Include="..\..\..\project\include\predefined_smart_pointers.h" />
+    <ClInclude Include="..\..\..\project\include\self_manager.h" />
+    <ClInclude Include="..\..\..\project\include\smart_pointer.h" />
+    <ClInclude Include="..\..\..\project\include\string_and_encoding\string_lib.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -51,7 +53,7 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -64,7 +66,7 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
