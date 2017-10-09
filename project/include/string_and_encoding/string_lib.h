@@ -147,6 +147,11 @@ bool operator ==(const typename CHAR_TRAITS::CHAR_TYPE *string1, const TString<C
 }
 
 typedef TString<StdCharTraits<char16_t>> String;
-#define _S(content) u##content
+
+String operator ""_s(const char16_t *chars, std::size_t length) {
+	return String(chars, length);
+}
+
+#define _S(content) u##content##_s
 
 #endif /* PROJECT_INCLUDE_STRING_AND_ENCODING_STRING_LIB_H_ */

@@ -36,12 +36,45 @@ public:
 	}
 };
 
+#if !defined(DISABLE_C11)
+
 template<typename OBJECT_TYPE, typename DESTROY_TRAITS>
 using StdDeleteOperation = ObjectDeleteOperation<OBJECT_TYPE, StdDeleteTraits, DESTROY_TRAITS>;
 template<typename OBJECT_TYPE, typename DESTROY_TRAITS>
 using VectorDeleteOperation = ObjectDeleteOperation<OBJECT_TYPE, VectorDeleteTraits, DESTROY_TRAITS>;
 template<typename OBJECT_TYPE, typename DESTROY_TRAITS>
 using FreeDeleteOperation = ObjectDeleteOperation<OBJECT_TYPE, ObjectFreeTraits, DESTROY_TRAITS>;
+
+#else
+
+template<typename OBJECT_TYPE, typename DESTROY_TRAITS>
+class StdDeleteOperation :
+    public ObjectDeleteOperation<OBJECT_TYPE, StdDeleteTraits, DESTROY_TRAITS> {
+public:
+    StdDeleteOperation(OBJECT_TYPE *object) :
+        ObjectDeleteOperation(object) {
+    }
+};
+
+template<typename OBJECT_TYPE, typename DESTROY_TRAITS>
+class VectorDeleteOperation :
+    public ObjectDeleteOperation<OBJECT_TYPE, VectorDeleteTraits, DESTROY_TRAITS> {
+public:
+    VectorDeleteOperation(OBJECT_TYPE *object) :
+        ObjectDeleteOperation(object) {
+    }
+};
+
+template<typename OBJECT_TYPE, typename DESTROY_TRAITS>
+class FreeDeleteOperation :
+    public ObjectDeleteOperation<OBJECT_TYPE, ObjectFreeTraits, DESTROY_TRAITS> {
+public:
+    FreeDeleteOperation(OBJECT_TYPE *object) :
+        ObjectDeleteOperation(object) {
+    }
+};
+
+#endif
 
 template<typename DESTROY_TRAITS>
 class ForwardDeleteOperation :
@@ -67,6 +100,19 @@ class RepeatedActivationException :
 	public std::exception {
 };
 
+#if defined(DISABLE_C11)
+
+class NewDeleteOperationTypeMismatchException :
+	public std::exception {
+};
+
+template<typename ACTUAL_DELETE_OPERATION, typename DESTROY_TRAITS>
+class ActivateDeleteOperation;
+template<typename ACTUAL_DELETE_OPERATION, typename DESTROY_TRAITS>
+void* operator new(size_t allocateBlockSize, ActivateDeleteOperation<ACTUAL_DELETE_OPERATION, DESTROY_TRAITS> &activateDeleteOperation);
+
+#endif
+
 template<typename ACTUAL_DELETE_OPERATION, typename DESTROY_TRAITS>
 class ActivateDeleteOperation :
 	public DeleteOperation {
@@ -76,10 +122,24 @@ private:
 	};
 	bool m_IsActivated;
 
+#if defined(DISABLE_C11)
+
+	void* Alloc() {
+		if (m_IsActivated) {
+			throw RepeatedActivationException();
+		}
+		m_IsActivated = true;
+        return reinterpret_cast<void*>(&m_ActualDeleteOperation);
+	}
+
+#endif
+
 public:
 	ActivateDeleteOperation() :
 		m_IsActivated(false) {
 	}
+#if !defined(DISABLE_C11)
+
 	template<typename ...ARGS>
 	void Activate(ARGS... args) {
 		if (m_IsActivated) {
@@ -88,6 +148,12 @@ public:
 		new(&m_ActualDeleteOperation) ACTUAL_DELETE_OPERATION(args...);
 		m_IsActivated = true;
 	}
+
+#else
+
+	friend void* operator new<ACTUAL_DELETE_OPERATION, DESTROY_TRAITS>(size_t allocateBlockSize, ActivateDeleteOperation<ACTUAL_DELETE_OPERATION, DESTROY_TRAITS> &activateDeleteOperation);
+
+#endif
 	virtual void DoDelete() override {
 		AutoPointer<ActivateDeleteOperation<ACTUAL_DELETE_OPERATION, DESTROY_TRAITS>, DESTROY_TRAITS> deleteThis(this);
 		if (m_IsActivated) {
@@ -100,5 +166,15 @@ public:
 		}
 	}
 };
+
+#if defined(DISABLE_C11)
+template<typename ACTUAL_DELETE_OPERATION, typename DESTROY_TRAITS>
+void* operator new(size_t allocateBlockSize, ActivateDeleteOperation<ACTUAL_DELETE_OPERATION, DESTROY_TRAITS> &activateDeleteOperation) {
+	if (sizeof(ACTUAL_DELETE_OPERATION) != allocateBlockSize) {
+		throw NewDeleteOperationTypeMismatchException();
+	}
+	return activateDeleteOperation.Alloc();
+}
+#endif
 
 #endif /* PROJECT_INCLUDE_DELETE_OPERATIONS_H_ */

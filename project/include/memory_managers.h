@@ -8,7 +8,6 @@
 #ifndef PROJECT_INCLUDE_MEMORY_MANAGERS_H_
 #define PROJECT_INCLUDE_MEMORY_MANAGERS_H_
 
-#include <atomic>
 #include "memory_manager_interface.h"
 #include "delete_traits.h"
 
@@ -55,6 +54,11 @@ public:
 		return referenceCount;
 	}
 };
+
+#if !defined(DISABLE_C11)
+
+#include <atomic>
+
 class MultiThreadTraits {
 public:
 	typedef std::atomic<unsigned long> REFERENCE_COUNT_TYPE;
@@ -62,9 +66,8 @@ public:
 		++referenceCount;
 	}
 	static unsigned long Decrease(REFERENCE_COUNT_TYPE &referenceCount) {
-		
 		unsigned long updatedValue = referenceCount.fetch_sub(1L, std::memory_order_seq_cst);
-		return updatedValue;
+		return updatedValue - 1;
 	}
 };
 
@@ -73,5 +76,46 @@ using SingleThreadReferenceCountMemoryManager = TReferenceCountMemoryManager<Sin
 
 template<typename DESTROY_TRAITS>
 using MultiThreadReferenceCountMemoryManager = TReferenceCountMemoryManager<MultiThreadTraits, DESTROY_TRAITS>;
+
+#else
+
+#if defined(WINDOWS_PLATFORM)
+
+#include <Windows.h>
+class MultiThreadTraits {
+public:
+	typedef LONG REFERENCE_COUNT_TYPE;
+	static void Increase(REFERENCE_COUNT_TYPE &referenceCount) {
+		InterlockedIncrement(&referenceCount);
+	}
+	static unsigned long Decrease(REFERENCE_COUNT_TYPE &referenceCount) {
+		LONG updatedValue = InterlockedDecrement(&referenceCount);
+		return updatedValue;
+	}
+};
+
+#endif
+
+template<typename DESTROY_TRAITS>
+class SingleThreadReferenceCountMemoryManager :
+	public TReferenceCountMemoryManager<SingleThreadTraits, DESTROY_TRAITS> {
+public:
+	SingleThreadReferenceCountMemoryManager(DeleteOperation *deleteOperation) :
+	    TReferenceCountMemoryManager(deleteOperation) {
+	}
+};
+
+template<typename DESTROY_TRAITS>
+class MultiThreadReferenceCountMemoryManager :
+	public TReferenceCountMemoryManager<MultiThreadTraits, DESTROY_TRAITS> {
+public:
+	MultiThreadReferenceCountMemoryManager(DeleteOperation *deleteOperation) :
+	    TReferenceCountMemoryManager(deleteOperation) {
+	}
+};
+
+#endif
+
+
 
 #endif /* PROJECT_INCLUDE_MEMORY_MANAGERS_H_ */

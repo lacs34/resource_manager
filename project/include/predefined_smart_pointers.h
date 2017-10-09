@@ -14,6 +14,8 @@
 #include "memory_managers.h"
 #include "self_manager.h"
 
+#if !defined(DISABLE_C11)
+
 template<typename OBJECT_TYPE, typename ...LEFTOVER_ARGS>
 class ObjectCreator;
 
@@ -52,6 +54,8 @@ public:
 		return new OBJECT_TYPE(converted...);
 	}
 };
+
+#endif
 
 template<typename POINTED_TYPE>
 class StdPointer :
