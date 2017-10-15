@@ -19,12 +19,18 @@
     <Filter Include="头文件\collections">
       <UniqueIdentifier>{f4f3d60b-03c6-426d-ad4d-200beb6816e2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\threading">
+      <UniqueIdentifier>{33cbe5fe-ad4c-460c-980f-7ca4c376699b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\project\source\memory_managers.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\project\source\self_manager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\project\source\date_time.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -73,6 +79,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\project\include\collections\collections_interfaces.h">
       <Filter>头文件\collections</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\project\include\date_time.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\project\include\threading\thread.h">
+      <Filter>头文件\threading</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -15,6 +15,116 @@
 #include "collections_interfaces.h"
 #include "predefined_array.h"
 #include <string>
+#include <queue>
+#include <vector>
+#include <cuchar>
+#include <cassert>
+
+template<typename FROM_TYPE, typename TO_TYPE>
+class CodingConverter {
+public:
+	virtual void Feed(FROM_TYPE source) = 0;
+	virtual bool ContainNext() = 0;
+	virtual TO_TYPE ReadNext() = 0;
+	virtual void End() = 0;
+	virtual ~CodingConverter() { }
+};
+
+template<typename FROM_TYPE, typename TO_TYPE>
+class ConverterBase :
+	public CodingConverter<FROM_TYPE, TO_TYPE> {
+private:
+	std::vector<FROM_TYPE> m_RawInput;
+	std::queue<TO_TYPE> m_Decoded;
+	size_t m_LastDecodeLeftCount;
+
+protected:
+	virtual std::size_t Decode(FROM_TYPE *input, std::size_t count) = 0;
+	void Generate(TO_TYPE output) {
+		m_Decoded.push(output);
+	}
+
+private:
+	void DecodeInput() {
+		size_t inputCount = m_RawInput.size();
+		if (inputCount <= m_LastDecodeLeftCount) {
+			return;
+		}
+		FROM_TYPE *input = m_RawInput.data();
+		std::size_t consumed = Decode(input, inputCount);
+		assert(consumed <= m_RawInput.size());
+		m_RawInput.erase(m_RawInput.begin(), m_RawInput.begin() + consumed);
+		m_LastDecodeLeftCount -= consumed;
+	}
+
+public:
+	ConverterBase() :
+		m_LastDecodeLeftCount(0_size) {
+	}
+	virtual void Feed(FROM_TYPE source) override {
+		m_RawInput.push_back(source);
+	}
+	virtual bool ContainNext() override {
+		if (!m_Decoded.empty()) {
+			return true;
+		}
+		DecodeInput();
+		return !m_Decoded.empty();
+	}
+	virtual TO_TYPE ReadNext() override {
+		if (m_Decoded.empty()) {
+			DecodeInput();
+			if (m_Decoded.empty()) {
+				throw NoMoreOutputException();
+			}
+		}
+		char16_t next = m_Decoded.front();
+		m_Decoded.pop();
+		return next;
+	}
+	virtual void End() override {
+		DecodeInput();
+		if (m_RawInput.size() > 0) {
+			throw IllegalInputFormatException();
+		}
+	}
+};
+
+
+class Utf8ToUtf16Converter :
+    public ConverterBase<char, char16_t> {
+private:
+	mbstate_t m_DecoderState;
+
+protected:
+	virtual std::size_t Decode(char *input, std::size_t count) override;
+
+public:
+	Utf8ToUtf16Converter();
+};
+
+template<typename FROM_TYPE, typename TO_TYPE>
+Array<TO_TYPE> Convert(CodingConverter<FROM_TYPE, TO_TYPE> &converter, SmartPointer<Iterator<FROM_TYPE>> source) {
+	while (source->MoveNext()) {
+		converter.Feed(source->GetCurrent());
+	}
+	converter.End();
+	std::vector<char16_t> output;
+	while (converter.ContainNext()) {
+		output.push_back(converter.ReadNext());
+	}
+	StdArray<TO_TYPE> result(output.size());
+	std::copy(output.begin(), output.end(), result.GetAddress());
+	return result;
+}
+
+class NoMoreOutputException :
+	public std::exception {
+};
+
+class IllegalInputFormatException :
+	public std::exception {
+};
 
 template<typename CHAR_TYPE>
 class StdCharTraits;
@@ -113,14 +223,15 @@ public:
 	TString(const Array<CharType> charArray) :
 		TString(charArray.GetAddress(), charArray.GetLength()) {
 	}
-	inline size_t GetLength() {
+	inline size_t GetLength() const {
 		return m_CharArray.GetLength();
 	}
-	CharType operator [](size_t index) {
+	CharType operator [](size_t index) const {
 		return m_CharArray.GetElementAt(index);
 	}
 
 	virtual SmartPointer<Iterator<CharType>> GetIterator() override {
+		return m_CharArray.GetIterator();
 	}
 
 	friend bool operator ==<CHAR_TRAITS>(const TString<CHAR_TRAITS> string1, const TString<CHAR_TRAITS> string2);
@@ -131,26 +242,26 @@ template<typename CHAR_TRAITS>
 bool operator ==(const TString<CHAR_TRAITS> string1, const TString<CHAR_TRAITS> string2) {
 	size_t length1 = string1.GetLength();
 	size_t length2 = string2.GetLength();
-	return IsEqual(string1.m_CharArray.GetAddress(), length1, string2.m_CharArray.GetAddress(), length2);
+	return IsEqual<CHAR_TRAITS>(string1.m_CharArray.GetAddress(), length1, string2.m_CharArray.GetAddress(), length2);
 }
 template<typename CHAR_TRAITS>
 bool operator ==(const TString<CHAR_TRAITS> string1, const typename CHAR_TRAITS::CHAR_TYPE *string2) {
 	size_t length1 = string1.GetLength();
 	size_t length2 = CHAR_TRAITS::Length(string2);
-	return IsEqual(string1.m_CharArray.GetAddress(), length1, string2, length2);
+	return IsEqual<CHAR_TRAITS>(string1.m_CharArray.GetAddress(), length1, string2, length2);
 }
 template<typename CHAR_TRAITS>
 bool operator ==(const typename CHAR_TRAITS::CHAR_TYPE *string1, const TString<CHAR_TRAITS> string2) {
 	size_t length1 = CHAR_TRAITS::Length(string1);
 	size_t length2 = string2.GetLength();
-	return IsEqual(string1, length1, string2.m_CharArray.GetAddress(), length2);
+	return IsEqual<CHAR_TRAITS>(string1, length1, string2.m_CharArray.GetAddress(), length2);
 }
 
 typedef TString<StdCharTraits<char16_t>> String;
 
-String operator ""_s(const char16_t *chars, std::size_t length) {
-	return String(chars, length);
-}
+String operator ""_s(const char16_t *chars, std::size_t length);
+TString<StdCharTraits<char>> operator ""_s(const char *chars, std::size_t length);
+TString<StdCharTraits<char32_t>> operator ""_s(const char32_t *chars, std::size_t length);
 
 #define _S(content) u##content##_s
 

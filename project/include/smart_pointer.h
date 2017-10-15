@@ -51,6 +51,9 @@ public:
 	const POINTED_TYPE* operator ->() const {
 		return m_Pointer;
 	}
+	POINTED_TYPE* GetPointer() const {
+		return m_Pointer;
+	}
 	SmartPointer<POINTED_TYPE>& operator =(const SmartPointer<POINTED_TYPE> &pointer) {
 		if (EqualTo(pointer)) {
 			return *this;
@@ -61,6 +64,13 @@ public:
 		m_Pointer = pointer.m_Pointer;
 		m_Manager = manager;
 		return *this;
+	}
+	template<typename DEST_TYPE>
+	SmartPointer<DEST_TYPE> Cast() {
+		if (m_Manager != nullptr) {
+			m_Manager->IncreaseReference();
+		}
+		return SmartPointer<DEST_TYPE>(static_cast<DEST_TYPE*>(m_Pointer), m_Manager);
 	}
 	~SmartPointer() {
 		Release();

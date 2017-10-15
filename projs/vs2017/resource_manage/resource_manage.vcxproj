@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\project\source\date_time.cpp" />
     <ClCompile Include="..\..\..\project\source\memory_managers.cpp" />
     <ClCompile Include="..\..\..\project\source\self_manager.cpp" />
   </ItemGroup>
@@ -27,6 +28,7 @@
     <ClInclude Include="..\..\..\project\include\collections\collections_interfaces.h" />
     <ClInclude Include="..\..\..\project\include\common_definition.h" />
     <ClInclude Include="..\..\..\project\include\compare_result.h" />
+    <ClInclude Include="..\..\..\project\include\date_time.h" />
     <ClInclude Include="..\..\..\project\include\delete_operations.h" />
     <ClInclude Include="..\..\..\project\include\delete_traits.h" />
     <ClInclude Include="..\..\..\project\include\exceptions.h" />
@@ -38,6 +40,7 @@
     <ClInclude Include="..\..\..\project\include\self_manager.h" />
     <ClInclude Include="..\..\..\project\include\smart_pointer.h" />
     <ClInclude Include="..\..\..\project\include\string_and_encoding\string_lib.h" />
+    <ClInclude Include="..\..\..\project\include\threading\thread.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

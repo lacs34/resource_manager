@@ -10,6 +10,8 @@
 
 #include "memory_manager_interface.h"
 #include "exceptions.h"
+#include "collections/collections_interfaces.h"
+#include "predefined_smart_pointers.h"
 #include <cstddef>
 #include <algorithm>
 
@@ -19,6 +21,34 @@ private:
 	ELEMENT_TYPE *m_StartAddress;
 	MemoryManager *m_Manager;
 	size_t m_Length;
+	class ArrayIterator :
+		public Iterator<ELEMENT_TYPE> {
+	private:
+		ELEMENT_TYPE *m_StartAddress;
+		MemoryManager *m_Manager;
+		size_t m_Length;
+
+	public:
+		ArrayIterator(Array<ELEMENT_TYPE> &iteratedArray) :
+			m_StartAddress(iteratedArray.m_StartAddress - 1),
+			m_Manager(iteratedArray.m_Manager),
+			m_Length(iteratedArray.m_Length) {
+		}
+		virtual bool MoveNext() override {
+			if (m_Length == 0) {
+				return false;
+			}
+			++m_StartAddress;
+			--m_Length;
+			return true;
+		}
+		virtual ELEMENT_TYPE GetCurrent() override {
+			return *m_StartAddress;
+		}
+		virtual ~ArrayIterator() {
+			m_Manager->DecreaseReference();
+		}
+	};
 
 public:
 	Array(ELEMENT_TYPE *start_address, MemoryManager *manager, size_t length) :
@@ -26,12 +56,17 @@ public:
 	}
 	Array(const Array<ELEMENT_TYPE> &source) :
 		m_StartAddress(source.m_StartAddress), m_Manager(source.m_Manager), m_Length(source.m_Length) {
-		m_Manager->IncreaseReference();
+		if (m_Manager != nullptr) {
+		    m_Manager->IncreaseReference();
+		}
 	}
-	inline ELEMENT_TYPE* GetAddress() {
+	Array() :
+		m_StartAddress(nullptr), m_Manager(&DummyManager), m_Length(0_size) {
+	}
+	inline ELEMENT_TYPE* GetAddress() const {
 		return m_StartAddress;
 	}
-	inline size_t GetLength() {
+	inline size_t GetLength() const {
 		return m_Length;
 	}
 	void CopyFrom(const ELEMENT_TYPE *array, size_t count) {
@@ -53,6 +88,17 @@ public:
 			throw OutOfRangeException();
 		}
 		return m_StartAddress[index];
+	}
+	virtual ~Array() {
+		m_Manager->DecreaseReference();
+	}
+
+	virtual SmartPointer<Iterator<ELEMENT_TYPE>> GetIterator() {
+		SmartPointer<Iterator<ELEMENT_TYPE>> iterator = StdPointer<ArrayIterator>(*this).Cast<Iterator<ELEMENT_TYPE>>();
+		if (m_Manager != nullptr) {
+            m_Manager->IncreaseReference();
+		}
+		return iterator;
 	}
 };
 
