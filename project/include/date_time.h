@@ -146,7 +146,7 @@ public:
 	bool operator <(Time &value);
 	bool operator <=(Time &value);
 };
-Time GetCurrentTime();
+Time GetNowTime();
 
 class DateSpan {
 public:

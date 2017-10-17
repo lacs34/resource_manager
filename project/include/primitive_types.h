@@ -35,10 +35,25 @@ public:
 template<std::size_t TYPE_SIZE, typename ...CANDIDATE_TYPES>
 using PickType = typename TypePicker<TYPE_SIZE, CANDIDATE_TYPES...>::PICKED_TYPE;
 
+template<bool IS_SIGNED, std::size_t TYPE_SIZE>
+class IntPicker {
+public:
+	typedef PickType<TYPE_SIZE, signed char, short, int, long, long long> PICKED_INT;
+};
+
 template<std::size_t TYPE_SIZE>
-using PickSigned = PickType<TYPE_SIZE, signed char, short, int, long, long long>;
+class IntPicker<false, TYPE_SIZE> {
+public:
+	typedef PickType<TYPE_SIZE, unsigned char, unsigned short, unsigned int, unsigned long, unsigned long long> PICKED_INT;
+};
+
+template<bool IS_SIGNED, std::size_t TYPE_SIZE>
+using PickInt = typename IntPicker<IS_SIGNED, TYPE_SIZE>::PICKED_INT;
+
 template<std::size_t TYPE_SIZE>
-using PickUnsigned = PickType<TYPE_SIZE, unsigned char, unsigned short, unsigned int, unsigned long, unsigned long long>;
+using PickSigned = PickInt<true, TYPE_SIZE>;
+template<std::size_t TYPE_SIZE>
+using PickUnsigned = PickInt<false, TYPE_SIZE>;
 
 typedef PickSigned<1_size> Int8;
 typedef PickSigned<2_size> Int16;

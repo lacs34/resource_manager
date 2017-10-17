@@ -25,6 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\project\include\arrays.h" />
+    <ClInclude Include="..\..\..\project\include\basic_types.h" />
     <ClInclude Include="..\..\..\project\include\collections\collections_interfaces.h" />
     <ClInclude Include="..\..\..\project\include\common_definition.h" />
     <ClInclude Include="..\..\..\project\include\compare_result.h" />
@@ -37,6 +38,7 @@
     <ClInclude Include="..\..\..\project\include\pointer_holder.h" />
     <ClInclude Include="..\..\..\project\include\predefined_array.h" />
     <ClInclude Include="..\..\..\project\include\predefined_smart_pointers.h" />
+    <ClInclude Include="..\..\..\project\include\primitive_types.h" />
     <ClInclude Include="..\..\..\project\include\self_manager.h" />
     <ClInclude Include="..\..\..\project\include\smart_pointer.h" />
     <ClInclude Include="..\..\..\project\include\string_and_encoding\string_lib.h" />

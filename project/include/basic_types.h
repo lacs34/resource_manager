@@ -11,53 +11,35 @@
 #include "primitive_types.h"
 #include <cstddef>
 
-template<bool SIGNED, std::size_t SIZE>
-class IntegerType {
-};
+template<typename INT_TYPE>
+constexpr bool IsSigned() {
+	return INT_TYPE(INT_TYPE(0) - INT_TYPE(1)) < INT_TYPE(0);
+}
 
-template<>
-class IntegerType<true, 8> {
+template<typename INT_TYPE>
+constexpr INT_TYPE MaxValueHighestByte() {
+	return IsSigned<INT_TYPE>() ? INT_TYPE(0x7F) : INT_TYPE(0xFF);
+}
+template<std::size_t UNINITIALIZED_SIZE, typename INT_TYPE>
+class PartialMaxInt
+{
 public:
-	typedef Int8 INT_TYPE;
+	static constexpr INT_TYPE PARTIAL_MAX_VALUE = (PartialMaxInt<UNINITIALIZED_SIZE - 1, INT_TYPE>::PARTIAL_MAX_VALUE << 8) | 0xFF;
 };
-template<>
-class IntegerType<false, 8> {
+template<typename INT_TYPE>
+class PartialMaxInt<1_size, INT_TYPE>
+{
 public:
-	typedef UInt8 INT_TYPE;
+	static constexpr INT_TYPE PARTIAL_MAX_VALUE = MaxValueHighestByte<INT_TYPE>();
 };
-template<>
-class IntegerType<true, 16> {
-public:
-	typedef UInt8 INT_TYPE;
-};
-template<>
-class IntegerType<false, 16> {
-public:
-	typedef UInt8 INT_TYPE;
-};
-template<>
-class IntegerType<true, 32> {
-public:
-	typedef UInt8 INT_TYPE;
-};
-template<>
-class IntegerType<false, 32> {
-public:
-	typedef UInt8 INT_TYPE;
-};
-template<>
-class IntegerType<true, 64> {
-public:
-	typedef UInt8 INT_TYPE;
-};
-template<>
-class IntegerType<false, 64> {
-public:
-	typedef UInt8 INT_TYPE;
-};
-
-template<bool SIGNED, std::size_t SIZE>
-using Integer = typename IntegerType<SIGNED, SIZE>::INT_TYPE;
+template<typename INT_TYPE>
+constexpr INT_TYPE MaxValue() {
+	return PartialMaxInt<sizeof(INT_TYPE), INT_TYPE>::PARTIAL_MAX_VALUE;
+}
+template<typename INT_TYPE>
+constexpr INT_TYPE MinValue() {
+	return INT_TYPE(MaxValue<INT_TYPE>() + INT_TYPE(1));
+}
 
 template<bool USE_FIRST, typename TYPE1, typename TYPE2>
 class TypeSelect {

@@ -86,5 +86,11 @@
     <ClInclude Include="..\..\..\project\include\threading\thread.h">
       <Filter>头文件\threading</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\project\include\basic_types.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\project\include\primitive_types.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

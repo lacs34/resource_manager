@@ -99,55 +99,16 @@ bool Time::operator <=(Time &value) {
 constexpr Int64 MaxTicks = Int64(3155378975999999999);
 constexpr Int64 MinTicks = Int64(0);
 #include <Windows.h>
-TimeZoneInfo.OffsetAndRule GetOneYearLocalFromUtc(int year)
-{
-	TimeZoneInfo.OffsetAndRule offsetAndRule = this.m_oneYearLocalFromUtc;
-	if (offsetAndRule == null || offsetAndRule.year != year)
-	{
-		TimeZoneInfo currentOneYearLocal = TimeZoneInfo.CachedData.GetCurrentOneYearLocal();
-		TimeZoneInfo.AdjustmentRule rule = (currentOneYearLocal.m_adjustmentRules == null) ? null : currentOneYearLocal.m_adjustmentRules[0];
-		offsetAndRule = new TimeZoneInfo.OffsetAndRule(year, currentOneYearLocal.BaseUtcOffset, rule);
-		this.m_oneYearLocalFromUtc = offsetAndRule;
-	}
-	return offsetAndRule;
-}
-static TimeSpan GetDateTimeNowUtcOffsetFromUtc(Time time, bool *isAmbiguousLocalDst)
-{
-	*isAmbiguousLocalDst = false;
-	int year = time.GetYear();
-	TimeZoneInfo.OffsetAndRule oneYearLocalFromUtc = TimeZoneInfo.s_cachedData.GetOneYearLocalFromUtc(year);
-	TimeSpan timeSpan = oneYearLocalFromUtc.offset;
-	if (oneYearLocalFromUtc.rule != null)
-	{
-		timeSpan += oneYearLocalFromUtc.rule.BaseUtcOffsetDelta;
-		if (oneYearLocalFromUtc.rule.HasDaylightSaving)
-		{
-			bool isDaylightSavingsFromUtc = TimeZoneInfo.GetIsDaylightSavingsFromUtc(time, year, oneYearLocalFromUtc.offset, oneYearLocalFromUtc.rule, out isAmbiguousLocalDst, TimeZoneInfo.Local);
-			timeSpan += (isDaylightSavingsFromUtc ? oneYearLocalFromUtc.rule.DaylightDelta : TimeSpan::GetZero());
-		}
-	}
-	return timeSpan;
-}
 
-Time GetCurrentTime() {
+Time GetNowTime() {
 	FILETIME fileTime;
 	GetSystemTimeAsFileTime(&fileTime);
-	ULARGE_INTEGER time;
-	time.HighPart = fileTime.dwHighDateTime;
-	time.LowPart = fileTime.dwLowDateTime;
-
-	bool isAmbiguousDst = false;
-	Int64 ticks = TimeZoneInfo.GetDateTimeNowUtcOffsetFromUtc(utcNow, out isAmbiguousDst).Ticks;
-	Int64 num = time.QuadPart + ticks;
-	if (num > MaxTicks)
-	{
-		return Time(MaxTicks);
-	}
-	if (num < MinTicks)
-	{
-		return Time(MinTicks);
-	}
-	return Time(num, DateTimeKind.Local, isAmbiguousDst);
+	FILETIME localFileTime;
+	FileTimeToLocalFileTime(&fileTime, &localFileTime);
+	LARGE_INTEGER time;
+	time.HighPart = localFileTime.dwHighDateTime;
+	time.LowPart = localFileTime.dwLowDateTime;
+	return Time(Int64(time.QuadPart));
 }
 
 class Calendar {

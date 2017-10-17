@@ -33,8 +33,8 @@ class TestDeleteTraits {
 private:
 	template<typename OBJECT_TYPE>
 	static TestDeleteTraitsObjectContainer<OBJECT_TYPE>* ConvertInternalObjectAdress(OBJECT_TYPE *object) {
-		size_t objectOffset =  offsetof(TestDeleteTraitsObjectContainer<OBJECT_TYPE>, m_ObjectToBeDeleted);
-		return (TestDeleteTraitsObjectContainer<OBJECT_TYPE>*)(((long)object) - objectOffset);
+		std::size_t objectOffset =  offsetof(TestDeleteTraitsObjectContainer<OBJECT_TYPE>, m_ObjectToBeDeleted);
+		return (TestDeleteTraitsObjectContainer<OBJECT_TYPE>*)(((std::size_t)object) - objectOffset);
 	}
 
 public:
