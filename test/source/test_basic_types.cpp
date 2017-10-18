@@ -79,3 +79,124 @@ TEST_F(BasicTypesTest, TestMinValue)
 	ASSERT_EQ(Int32(0x80000000), MinValue<Int32>());
 	ASSERT_EQ(Int64(0x8000000000000000), MinValue<Int64>());
 }
+
+TEST_F(BasicTypesTest, TestSmallestUnsignedStorage)
+{
+	ASSERT_EQ(1, sizeof(SmallestUnsignedStorage<0>));
+	ASSERT_EQ(1, sizeof(SmallestUnsignedStorage<0xFF>));
+
+	ASSERT_EQ(2, sizeof(SmallestUnsignedStorage<0x100>));
+	ASSERT_EQ(2, sizeof(SmallestUnsignedStorage<0xFFFF>));
+
+	ASSERT_EQ(4, sizeof(SmallestUnsignedStorage<0x10000>));
+	ASSERT_EQ(4, sizeof(SmallestUnsignedStorage<0xFFFFFFFF>));
+
+	ASSERT_EQ(8, sizeof(SmallestUnsignedStorage<0x100000000>));
+	ASSERT_EQ(8, sizeof(SmallestUnsignedStorage<0xFFFFFFFFFFFFFFFF>));
+}
+
+TEST_F(BasicTypesTest, TestSmallestSignedStorage)
+{
+	ASSERT_EQ(1, sizeof(SmallestSignedStorage<0, 0>));
+	ASSERT_EQ(1, sizeof(SmallestSignedStorage<0, 0x7F>));
+
+	ASSERT_EQ(2, sizeof(SmallestSignedStorage<0, 0x80>));
+	ASSERT_EQ(2, sizeof(SmallestSignedStorage<0, 0x7FFF>));
+
+	ASSERT_EQ(4, sizeof(SmallestSignedStorage<0, 0x8000>));
+	ASSERT_EQ(4, sizeof(SmallestSignedStorage<0, 0x7FFFFFFF>));
+
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<0, 0x80000000>));
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<0, 0x7FFFFFFFFFFFFFFF>));
+
+
+	ASSERT_EQ(1, sizeof(SmallestSignedStorage<-Int64(128), 0>));
+	ASSERT_EQ(1, sizeof(SmallestSignedStorage<-Int64(128), 0x7F>));
+
+	ASSERT_EQ(2, sizeof(SmallestSignedStorage<-Int64(128), 0x80>));
+	ASSERT_EQ(2, sizeof(SmallestSignedStorage<-Int64(128), 0x7FFF>));
+
+	ASSERT_EQ(4, sizeof(SmallestSignedStorage<-Int64(128), 0x8000>));
+	ASSERT_EQ(4, sizeof(SmallestSignedStorage<-Int64(128), 0x7FFFFFFF>));
+
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(128), 0x80000000>));
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(128), 0x7FFFFFFFFFFFFFFF>));
+
+
+	ASSERT_EQ(2, sizeof(SmallestSignedStorage<-Int64(129), 0>));
+	ASSERT_EQ(2, sizeof(SmallestSignedStorage<-Int64(129), 0x7F>));
+
+	ASSERT_EQ(2, sizeof(SmallestSignedStorage<-Int64(129), 0x80>));
+	ASSERT_EQ(2, sizeof(SmallestSignedStorage<-Int64(129), 0x7FFF>));
+
+	ASSERT_EQ(4, sizeof(SmallestSignedStorage<-Int64(129), 0x8000>));
+	ASSERT_EQ(4, sizeof(SmallestSignedStorage<-Int64(129), 0x7FFFFFFF>));
+
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(129), 0x80000000>));
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(129), 0x7FFFFFFFFFFFFFFF>));
+
+
+	ASSERT_EQ(2, sizeof(SmallestSignedStorage<-Int64(32768), 0>));
+	ASSERT_EQ(2, sizeof(SmallestSignedStorage<-Int64(32768), 0x7F>));
+
+	ASSERT_EQ(2, sizeof(SmallestSignedStorage<-Int64(32768), 0x80>));
+	ASSERT_EQ(2, sizeof(SmallestSignedStorage<-Int64(32768), 0x7FFF>));
+
+	ASSERT_EQ(4, sizeof(SmallestSignedStorage<-Int64(32768), 0x8000>));
+	ASSERT_EQ(4, sizeof(SmallestSignedStorage<-Int64(32768), 0x7FFFFFFF>));
+
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(32768), 0x80000000>));
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(32768), 0x7FFFFFFFFFFFFFFF>));
+
+
+	ASSERT_EQ(4, sizeof(SmallestSignedStorage<-Int64(32769), 0>));
+	ASSERT_EQ(4, sizeof(SmallestSignedStorage<-Int64(32769), 0x7F>));
+
+	ASSERT_EQ(4, sizeof(SmallestSignedStorage<-Int64(32769), 0x80>));
+	ASSERT_EQ(4, sizeof(SmallestSignedStorage<-Int64(32769), 0x7FFF>));
+
+	ASSERT_EQ(4, sizeof(SmallestSignedStorage<-Int64(32769), 0x8000>));
+	ASSERT_EQ(4, sizeof(SmallestSignedStorage<-Int64(32769), 0x7FFFFFFF>));
+
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(32769), 0x80000000>));
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(32769), 0x7FFFFFFFFFFFFFFF>));
+
+
+	ASSERT_EQ(4, sizeof(SmallestSignedStorage<-Int64(2147483648), 0>));
+	ASSERT_EQ(4, sizeof(SmallestSignedStorage<-Int64(2147483648), 0x7F>));
+
+	ASSERT_EQ(4, sizeof(SmallestSignedStorage<-Int64(2147483648), 0x80>));
+	ASSERT_EQ(4, sizeof(SmallestSignedStorage<-Int64(2147483648), 0x7FFF>));
+
+	ASSERT_EQ(4, sizeof(SmallestSignedStorage<-Int64(2147483648), 0x8000>));
+	ASSERT_EQ(4, sizeof(SmallestSignedStorage<-Int64(2147483648), 0x7FFFFFFF>));
+
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(2147483648), 0x80000000>));
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(2147483648), 0x7FFFFFFFFFFFFFFF>));
+
+
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(2147483649), 0>));
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(2147483649), 0x7F>));
+
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(2147483649), 0x80>));
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(2147483649), 0x7FFF>));
+
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(2147483649), 0x8000>));
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(2147483649), 0x7FFFFFFF>));
+
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(2147483649), 0x80000000>));
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(2147483649), 0x7FFFFFFFFFFFFFFF>));
+
+
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(9223372036854775808), 0>));
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(9223372036854775808), 0x7F>));
+
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(9223372036854775808), 0x80>));
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(9223372036854775808), 0x7FFF>));
+
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(9223372036854775808), 0x8000>));
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(9223372036854775808), 0x7FFFFFFF>));
+
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(9223372036854775808), 0x80000000>));
+	ASSERT_EQ(8, sizeof(SmallestSignedStorage<-Int64(9223372036854775808), 0x7FFFFFFFFFFFFFFF>));
+}

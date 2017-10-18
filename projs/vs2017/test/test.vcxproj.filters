@@ -40,7 +40,7 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\test\source\test_basic_types.cpp">
-      <Filter>源文件</Filter>
+      <Filter>源文件\source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
