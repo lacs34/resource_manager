@@ -19,6 +19,9 @@
 #include <vector>
 #include <cuchar>
 #include <cassert>
+#if defined(WINDOWS_PLATFORM)
+#include "windows_platform.h"
+#endif
 
 template<typename FROM_TYPE, typename TO_TYPE>
 class CodingConverter {
@@ -152,6 +155,8 @@ public:
 	static size_t Length(const char *string) {
 		return StdTraits::length(string);
 	}
+
+	typedef Utf8ToUtf16Converter Utf8ToCharTypeEncoder;
 };
 
 template<>
@@ -178,6 +183,19 @@ public:
 		return StdTraits::length(string);
 	}
 };
+
+template<typename FROM_TYPE, typename TO_TYPE>
+class ConverterPicker{
+};
+
+template<>
+class ConverterPicker<StdCharTraits<char>, StdCharTraits<char16_t>> {
+public:
+	typedef Utf8ToUtf16Converter CONVERTER_TYPE;
+};
+
+template<typename FROM_TYPE, typename TO_TYPE>
+using Converter = typename ConverterPicker<FROM_TYPE, TO_TYPE>::CONVERTER_TYPE;
 
 template<typename CHAR_TRAITS>
 bool IsEqual(
@@ -212,6 +230,9 @@ private:
 		content.CopyFrom(chars, length);
 		return content;
 	}
+	TString(const Array<CharType> charArray, bool needCopy) :
+		m_CharArray(charArray) {
+	}
 
 public:
 	TString(const CharType *chars, size_t length) :
@@ -233,6 +254,23 @@ public:
 	virtual SmartPointer<Iterator<CharType>> GetIterator() override {
 		return m_CharArray.GetIterator();
 	}
+
+	template<typename FROM_CHAR_TRAITS>
+	static TString<CHAR_TRAITS> From(const typename FROM_CHAR_TRAITS::CHAR_TYPE *chars, size_t length) {
+		Converter<FROM_CHAR_TRAITS, CHAR_TRAITS> converter;
+		Scoped<CArrayIterator<typename FROM_CHAR_TRAITS::CHAR_TYPE>> stringIterator(chars, length);
+		Array<CharType> converted = Convert(converter, (&stringIterator).Cast<Iterator<typename FROM_CHAR_TRAITS::CHAR_TYPE>>());
+		TString<CHAR_TRAITS> convertedString(converted, false);
+		return convertedString;
+	}
+	template<typename FROM_CHAR_TRAITS>
+	static TString<CHAR_TRAITS> From(const typename FROM_CHAR_TRAITS::CHAR_TYPE *cStyleString);
+	template<typename FROM_CHAR_TRAITS>
+	static TString<CHAR_TRAITS> From(const Array<typename FROM_CHAR_TRAITS::CHAR_TYPE> charArray);
+	template<typename TO_CHAR_TRAITS>
+	TString<TO_CHAR_TRAITS> ToString();
+	template<typename TO_CHAR_TRAITS>
+	Array<typename TO_CHAR_TRAITS::CHAR_TYPE> ToArray();
 
 	friend bool operator ==<CHAR_TRAITS>(const TString<CHAR_TRAITS> string1, const TString<CHAR_TRAITS> string2);
 	friend bool operator ==<CHAR_TRAITS>(const TString<CHAR_TRAITS> string1, const typename CHAR_TRAITS::CHAR_TYPE *string2);

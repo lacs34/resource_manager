@@ -22,9 +22,8 @@ String Win32Exception::GetErrorMessage() {
 		ThrowLastErrorException();
 	}
 	AutoPointer<TCHAR, HLocalTraits> messageAutoPointer(messageBuffer);
-	String message(messageBuffer);
 
-	return message;
+	return String::From<StdCharTraits<TCHAR>>(messageBuffer);
 }
 
 #endif

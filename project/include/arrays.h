@@ -16,39 +16,46 @@
 #include <algorithm>
 
 template<typename ELEMENT_TYPE>
+class CArrayIterator :
+	public Iterator<ELEMENT_TYPE> {
+private:
+	const ELEMENT_TYPE *m_StartAddress;
+	size_t m_Length;
+	MemoryManager *m_Manager;
+
+public:
+	CArrayIterator(const ELEMENT_TYPE *startAddress, std::size_t length, MemoryManager *manager = nullptr) :
+		m_StartAddress(startAddress),
+		m_Length(length),
+		m_Manager(manager) {
+		if (manager != nullptr) {
+			manager->IncreaseReference();
+		}
+	}
+	virtual bool MoveNext() override {
+		if (m_Length == 0) {
+			return false;
+		}
+		++m_StartAddress;
+		--m_Length;
+		return true;
+	}
+	virtual ELEMENT_TYPE GetCurrent() override {
+		return *m_StartAddress;
+	}
+	virtual ~CArrayIterator() {
+		if (m_Manager != nullptr) {
+			m_Manager->DecreaseReference();
+		}
+	}
+};
+
+template<typename ELEMENT_TYPE>
 class Array {
 private:
 	ELEMENT_TYPE *m_StartAddress;
 	MemoryManager *m_Manager;
 	size_t m_Length;
-	class ArrayIterator :
-		public Iterator<ELEMENT_TYPE> {
-	private:
-		ELEMENT_TYPE *m_StartAddress;
-		MemoryManager *m_Manager;
-		size_t m_Length;
-
-	public:
-		ArrayIterator(Array<ELEMENT_TYPE> &iteratedArray) :
-			m_StartAddress(iteratedArray.m_StartAddress - 1),
-			m_Manager(iteratedArray.m_Manager),
-			m_Length(iteratedArray.m_Length) {
-		}
-		virtual bool MoveNext() override {
-			if (m_Length == 0) {
-				return false;
-			}
-			++m_StartAddress;
-			--m_Length;
-			return true;
-		}
-		virtual ELEMENT_TYPE GetCurrent() override {
-			return *m_StartAddress;
-		}
-		virtual ~ArrayIterator() {
-			m_Manager->DecreaseReference();
-		}
-	};
 
 public:
 	Array(ELEMENT_TYPE *start_address, MemoryManager *manager, size_t length) :
@@ -94,7 +101,9 @@ public:
 	}
 
 	virtual SmartPointer<Iterator<ELEMENT_TYPE>> GetIterator() {
-		SmartPointer<Iterator<ELEMENT_TYPE>> iterator = StdPointer<ArrayIterator>(*this).Cast<Iterator<ELEMENT_TYPE>>();
+		SmartPointer<Iterator<ELEMENT_TYPE>> iterator =
+			StdPointer<CArrayIterator<ELEMENT_TYPE>>(m_StartAddress, m_Length, m_Manager)
+			.Cast<Iterator<ELEMENT_TYPE>>();
 		if (m_Manager != nullptr) {
             m_Manager->IncreaseReference();
 		}
