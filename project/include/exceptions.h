@@ -8,11 +8,7 @@
 #ifndef PROJECT_INCLUDE_EXCEPTIONS_H_
 #define PROJECT_INCLUDE_EXCEPTIONS_H_
 
-#include <exception>
-
-class OutOfRangeException :
-	public std::exception {
-};
+#include "common_exceptions.h"
 
 class PosixException :
 	public std::exception {
@@ -24,5 +20,26 @@ public:
 		m_ErrorCode(errorCode) {
 	}
 };
+
+#if defined(WINDOWS_PLATFORM)
+
+#include "windows_platform.h"
+#include "string_and_encoding/string_lib.h"
+
+class Win32Exception {
+private:
+	DWORD m_Error;
+
+public:
+	Win32Exception(DWORD err) :
+		m_Error(err) {
+	}
+
+	String GetErrorMessage();
+};
+
+void ThrowLastErrorException();
+
+#endif
 
 #endif /* PROJECT_INCLUDE_EXCEPTIONS_H_ */

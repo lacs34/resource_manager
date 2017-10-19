@@ -25,6 +25,9 @@
     <Filter Include="源文件\threading">
       <UniqueIdentifier>{c8ace615-9251-4e98-b289-791026c2da70}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\string_and_encoding">
+      <UniqueIdentifier>{cd4ad31f-19d4-445b-8d11-2bfb02ef023b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\project\source\memory_managers.cpp">
@@ -38,6 +41,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\project\source\threading\thread.cpp">
       <Filter>源文件\threading</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\project\source\exceptions.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\project\source\string_and_encoding\unicode_converters.cpp">
+      <Filter>源文件\string_and_encoding</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -96,6 +105,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\project\include\primitive_types.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\project\include\common_exceptions.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\project\include\windows_platform.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

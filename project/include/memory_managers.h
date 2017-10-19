@@ -81,7 +81,7 @@ using MultiThreadReferenceCountMemoryManager = TReferenceCountMemoryManager<Mult
 
 #if defined(WINDOWS_PLATFORM)
 
-#include <Windows.h>
+#include "windows_platform.h"
 class MultiThreadTraits {
 public:
 	typedef LONG REFERENCE_COUNT_TYPE;

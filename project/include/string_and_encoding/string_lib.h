@@ -8,11 +8,11 @@
 #ifndef PROJECT_INCLUDE_STRING_AND_ENCODING_STRING_LIB_H_
 #define PROJECT_INCLUDE_STRING_AND_ENCODING_STRING_LIB_H_
 
+#include "arrays.h"
 #include "smart_pointer.h"
 #include "compare_result.h"
-#include "arrays.h"
 #include "common_definition.h"
-#include "collections_interfaces.h"
+#include "collections/collections_interfaces.h"
 #include "predefined_array.h"
 #include <string>
 #include <queue>

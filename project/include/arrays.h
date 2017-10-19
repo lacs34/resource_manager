@@ -9,7 +9,7 @@
 #define PROJECT_INCLUDE_ARRAYS_H_
 
 #include "memory_manager_interface.h"
-#include "exceptions.h"
+#include "common_exceptions.h"
 #include "collections/collections_interfaces.h"
 #include "predefined_smart_pointers.h"
 #include <cstddef>

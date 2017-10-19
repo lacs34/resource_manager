@@ -89,4 +89,19 @@ public:
 	}
 };
 
+#if defined(WINDOWS_PLATFORM)
+
+#include "windows_platform.h"
+
+class HLocalTraits {
+public:
+	template<typename OBJECT_TYPE>
+	static void DeleteObject(OBJECT_TYPE *object) {
+		HLOCAL memory = (HLOCAL)object;
+		LocalFree(memory);
+	}
+};
+
+#endif
+
 #endif /* PROJECT_INCLUDE_DELETE_TRAITS_H_ */

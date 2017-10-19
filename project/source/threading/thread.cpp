@@ -7,6 +7,7 @@
 
 #include "threading/thread.h"
 #include "predefined_smart_pointers.h"
+#include "exceptions.h"
 
 static void ThreadStartProc(SmartPointer<Runnable> threadProc) {
 	threadProc->Run();
@@ -30,18 +31,35 @@ SmartPointer<Thread> Thread::Start(SmartPointer<Runnable> target) {
 	return threadSmartPointer;
 }
 
-bool Thread::IsTerminated() {
-	// TODO: use native method to implement it
-	return false;
-}
-
 void Thread::Join() {
 	m_Thread->join();
-}
-
-void Thread::Join(TimeSpan maxTime) {
 }
 
 bool Thread::operator==(Thread &another) {
 	return m_Thread->get_id() == another.m_Thread->get_id();
 }
+
+#if defined(WINDOWS_PLATFORM)
+
+#include "windows_platform.h"
+
+bool Thread::IsTerminated() {
+	HANDLE threadHandle = m_Thread->native_handle();
+	DWORD exitCode;
+	BOOL succeed = GetExitCodeThread(threadHandle, &exitCode);
+	if (!succeed) {
+		ThrowLastErrorException();
+	}
+	return exitCode != STILL_ACTIVE;
+}
+
+void Thread::Join(TimeSpan maxTime) {
+	HANDLE threadHandle = m_Thread->native_handle();
+	Int64 milliseconds = maxTime.GetTotalMillisecond();
+	DWORD waitResult = WaitForSingleObject(threadHandle, (DWORD)milliseconds);
+	if (waitResult == WAIT_FAILED) {
+		ThrowLastErrorException();
+	}
+}
+
+#endif // WINDOWS_PLATFORM

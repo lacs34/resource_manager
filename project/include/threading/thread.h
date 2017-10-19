@@ -28,10 +28,10 @@ private:
 
 public:
 	static SmartPointer<Thread> Start(SmartPointer<Runnable> target);
-	bool IsTerminated();
 	void Join();
-	void Join(TimeSpan maxTime);
 	bool operator==(Thread &another);
+	bool IsTerminated();
+	void Join(TimeSpan maxTime);
 };
 
 #endif // !THREAD_H_

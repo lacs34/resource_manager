@@ -20,8 +20,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\project\source\date_time.cpp" />
+    <ClCompile Include="..\..\..\project\source\exceptions.cpp" />
     <ClCompile Include="..\..\..\project\source\memory_managers.cpp" />
     <ClCompile Include="..\..\..\project\source\self_manager.cpp" />
+    <ClCompile Include="..\..\..\project\source\string_and_encoding\unicode_converters.cpp" />
     <ClCompile Include="..\..\..\project\source\threading\thread.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -29,6 +31,7 @@
     <ClInclude Include="..\..\..\project\include\basic_types.h" />
     <ClInclude Include="..\..\..\project\include\collections\collections_interfaces.h" />
     <ClInclude Include="..\..\..\project\include\common_definition.h" />
+    <ClInclude Include="..\..\..\project\include\common_exceptions.h" />
     <ClInclude Include="..\..\..\project\include\compare_result.h" />
     <ClInclude Include="..\..\..\project\include\date_time.h" />
     <ClInclude Include="..\..\..\project\include\delete_operations.h" />
@@ -44,6 +47,7 @@
     <ClInclude Include="..\..\..\project\include\smart_pointer.h" />
     <ClInclude Include="..\..\..\project\include\string_and_encoding\string_lib.h" />
     <ClInclude Include="..\..\..\project\include\threading\thread.h" />
+    <ClInclude Include="..\..\..\project\include\windows_platform.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -104,6 +108,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\..\project\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WINDOWS_PLATFORM;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -112,6 +117,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\..\project\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WINDOWS_PLATFORM;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -122,6 +128,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\..\project\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WINDOWS_PLATFORM;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -136,6 +143,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..\..\project\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WINDOWS_PLATFORM;_SCL_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

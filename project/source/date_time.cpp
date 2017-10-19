@@ -98,7 +98,7 @@ bool Time::operator <=(Time &value) {
 
 constexpr Int64 MaxTicks = Int64(3155378975999999999);
 constexpr Int64 MinTicks = Int64(0);
-#include <Windows.h>
+#include "windows_platform.h"
 
 Time GetNowTime() {
 	FILETIME fileTime;
