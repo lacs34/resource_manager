@@ -22,6 +22,9 @@
     <Filter Include="头文件\threading">
       <UniqueIdentifier>{33cbe5fe-ad4c-460c-980f-7ca4c376699b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\threading">
+      <UniqueIdentifier>{c8ace615-9251-4e98-b289-791026c2da70}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\project\source\memory_managers.cpp">
@@ -32,6 +35,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\project\source\date_time.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\project\source\threading\thread.cpp">
+      <Filter>源文件\threading</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

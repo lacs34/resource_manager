@@ -132,4 +132,11 @@ using SmallestSignedStorage = PickSigned<PickMaxSize<VALUES...>::INT_SIZE>;
 
 using IntOr32 = TypeSelect<Less(sizeof(int), 4_size), Int32, int>::SELECTED_TYPE;
 
+typedef PickUnsigned<sizeof(void*)> UIntPointer;
+
+template<typename POINTER_TYPE>
+constexpr UIntPointer ToUInt(POINTER_TYPE *pointer) {
+	return (UIntPointer)pointer;
+}
+
 #endif /* BASIC_TYPES_H_ */

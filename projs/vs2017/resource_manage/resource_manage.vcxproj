@@ -22,6 +22,7 @@
     <ClCompile Include="..\..\..\project\source\date_time.cpp" />
     <ClCompile Include="..\..\..\project\source\memory_managers.cpp" />
     <ClCompile Include="..\..\..\project\source\self_manager.cpp" />
+    <ClCompile Include="..\..\..\project\source\threading\thread.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\project\include\arrays.h" />

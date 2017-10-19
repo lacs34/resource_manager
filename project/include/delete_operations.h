@@ -113,13 +113,40 @@ void* operator new(size_t allocateBlockSize, ActivateDeleteOperation<ACTUAL_DELE
 
 #endif
 
+template<typename CONTAINED_TYPE>
+class LateInitialize {
+private:
+	union DummyUnion {
+		DummyUnion() { }
+		CONTAINED_TYPE m_Object;
+		~DummyUnion() { }
+	} m_ObjectUnion;
+
+public:
+	LateInitialize() {
+	}
+
+	template<typename ...CONSTRUCTOR_ARGS>
+	void Initialize(CONSTRUCTOR_ARGS&&... args) {
+		new(&m_ObjectUnion.m_Object) CONTAINED_TYPE(std::forward<CONSTRUCTOR_ARGS>(args)...);
+	}
+
+	CONTAINED_TYPE* operator ->() {
+		return &m_ObjectUnion.m_Object;
+	}
+
+	void Destroy() {
+		m_ObjectUnion.m_Object.~CONTAINED_TYPE();
+	}
+
+	~LateInitialize() { }
+};
+
 template<typename ACTUAL_DELETE_OPERATION, typename DESTROY_TRAITS>
 class ActivateDeleteOperation :
 	public DeleteOperation {
 private:
-	union {
-		ACTUAL_DELETE_OPERATION m_ActualDeleteOperation;
-	};
+	LateInitialize<ACTUAL_DELETE_OPERATION> m_ActualDeleteOperation;
 	bool m_IsActivated;
 
 #if defined(DISABLE_C11)
@@ -145,7 +172,7 @@ public:
 		if (m_IsActivated) {
 			throw RepeatedActivationException();
 		}
-		new(&m_ActualDeleteOperation) ACTUAL_DELETE_OPERATION(args...);
+		m_ActualDeleteOperation.Initialize(args...);
 		m_IsActivated = true;
 	}
 
@@ -157,12 +184,12 @@ public:
 	virtual void DoDelete() override {
 		AutoPointer<ActivateDeleteOperation<ACTUAL_DELETE_OPERATION, DESTROY_TRAITS>, DESTROY_TRAITS> deleteThis(this);
 		if (m_IsActivated) {
-			m_ActualDeleteOperation.DoDelete();
+			m_ActualDeleteOperation->DoDelete();
 		}
 	}
 	virtual ~ActivateDeleteOperation() {
 		if (m_IsActivated) {
-			m_ActualDeleteOperation.~ACTUAL_DELETE_OPERATION();
+			m_ActualDeleteOperation.Destroy();
 		}
 	}
 };
