@@ -16,41 +16,6 @@
 #include <algorithm>
 
 template<typename ELEMENT_TYPE>
-class CArrayIterator :
-	public Iterator<ELEMENT_TYPE> {
-private:
-	const ELEMENT_TYPE *m_StartAddress;
-	size_t m_Length;
-	MemoryManager *m_Manager;
-
-public:
-	CArrayIterator(const ELEMENT_TYPE *startAddress, std::size_t length, MemoryManager *manager = nullptr) :
-		m_StartAddress(startAddress),
-		m_Length(length),
-		m_Manager(manager) {
-		if (manager != nullptr) {
-			manager->IncreaseReference();
-		}
-	}
-	virtual bool MoveNext() override {
-		if (m_Length == 0) {
-			return false;
-		}
-		++m_StartAddress;
-		--m_Length;
-		return true;
-	}
-	virtual ELEMENT_TYPE GetCurrent() override {
-		return *m_StartAddress;
-	}
-	virtual ~CArrayIterator() {
-		if (m_Manager != nullptr) {
-			m_Manager->DecreaseReference();
-		}
-	}
-};
-
-template<typename ELEMENT_TYPE>
 class Array {
 private:
 	ELEMENT_TYPE *m_StartAddress;
@@ -76,6 +41,9 @@ public:
 	inline size_t GetLength() const {
 		return m_Length;
 	}
+	inline MemoryManager* GetManager() const {
+		return m_Manager;
+	}
 	void CopyFrom(const ELEMENT_TYPE *array, size_t count) {
 		size_t copyLength = std::min(m_Length, count);
 		std::copy(array, array + copyLength, m_StartAddress);
@@ -100,15 +68,56 @@ public:
 		m_Manager->DecreaseReference();
 	}
 
-	virtual SmartPointer<Iterator<ELEMENT_TYPE>> GetIterator() {
-		SmartPointer<Iterator<ELEMENT_TYPE>> iterator =
-			StdPointer<CArrayIterator<ELEMENT_TYPE>>(m_StartAddress, m_Length, m_Manager)
-			.Cast<Iterator<ELEMENT_TYPE>>();
-		if (m_Manager != nullptr) {
-            m_Manager->IncreaseReference();
+	virtual SmartPointer<Iterator<ELEMENT_TYPE>> GetIterator();
+};
+
+template<typename ELEMENT_TYPE>
+class CArrayIterator :
+	public Iterator<ELEMENT_TYPE> {
+private:
+	const ELEMENT_TYPE *m_StartAddress;
+	size_t m_Length;
+	MemoryManager *m_Manager;
+
+public:
+	CArrayIterator(const ELEMENT_TYPE *startAddress, std::size_t length, MemoryManager *manager = nullptr) :
+		m_StartAddress(startAddress - 1),
+		m_Length(length),
+		m_Manager(manager) {
+		if (manager != nullptr) {
+			manager->IncreaseReference();
 		}
-		return iterator;
+	}
+	CArrayIterator(const Array<ELEMENT_TYPE> arrayObject) :
+		CArrayIterator(arrayObject.GetAddress(), arrayObject.GetLength(), arrayObject.GetManager()) {
+	}
+	virtual bool MoveNext() override {
+		if (m_Length == 0) {
+			return false;
+		}
+		++m_StartAddress;
+		--m_Length;
+		return true;
+	}
+	virtual ELEMENT_TYPE GetCurrent() override {
+		return *m_StartAddress;
+	}
+	virtual ~CArrayIterator() {
+		if (m_Manager != nullptr) {
+			m_Manager->DecreaseReference();
+		}
 	}
 };
+
+template<typename ELEMENT_TYPE>
+SmartPointer<Iterator<ELEMENT_TYPE>> Array<ELEMENT_TYPE>::GetIterator() {
+	SmartPointer<Iterator<ELEMENT_TYPE>> iterator =
+		StdPointer<CArrayIterator<ELEMENT_TYPE>>(m_StartAddress, m_Length, m_Manager)
+		.Cast<Iterator<ELEMENT_TYPE>>();
+	if (m_Manager != nullptr) {
+		m_Manager->IncreaseReference();
+	}
+	return iterator;
+}
 
 #endif /* PROJECT_INCLUDE_ARRAYS_H_ */

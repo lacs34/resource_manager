@@ -113,5 +113,14 @@
     <ClInclude Include="..\..\..\project\include\windows_platform.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\project\include\string_and_encoding\coding_converter_interface.h">
+      <Filter>头文件\string_and_encoding</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\project\include\string_and_encoding\unicode_converters.h">
+      <Filter>头文件\string_and_encoding</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\project\include\string_and_encoding\string_traits.h">
+      <Filter>头文件\string_and_encoding</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

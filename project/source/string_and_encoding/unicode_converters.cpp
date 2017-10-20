@@ -1,4 +1,6 @@
-#include "string_and_encoding/string_lib.h"
+#include "string_and_encoding/unicode_converters.h"
+#include "exceptions.h"
+#include <cuchar>
 
 String operator ""_s(const char16_t *chars, std::size_t length) {
 	return String(chars, length);

@@ -45,6 +45,9 @@
     <ClInclude Include="..\..\..\project\include\primitive_types.h" />
     <ClInclude Include="..\..\..\project\include\self_manager.h" />
     <ClInclude Include="..\..\..\project\include\smart_pointer.h" />
+    <ClInclude Include="..\..\..\project\include\string_and_encoding\string_traits.h" />
+    <ClInclude Include="..\..\..\project\include\string_and_encoding\unicode_converters.h" />
+    <ClInclude Include="..\..\..\project\include\string_and_encoding\coding_converter_interface.h" />
     <ClInclude Include="..\..\..\project\include\string_and_encoding\string_lib.h" />
     <ClInclude Include="..\..\..\project\include\threading\thread.h" />
     <ClInclude Include="..\..\..\project\include\windows_platform.h" />
