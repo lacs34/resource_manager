@@ -15,6 +15,6 @@ protected:
 
 TEST_F(StringTest, TestStringLength)
 {
-	//String str(_S("Hello"));
-	//ASSERT_EQ(6_size, str.GetLength());
+	String str(String::From<Utf8Encoding>(u8"ฮารว"));
+	//ASSERT_EQ(6_size, str.t);
 }

@@ -85,7 +85,7 @@ public:
 		}
 	}
 	virtual bool MoveNext() override {
-		if (*m_StartAddress == CharType(0)) {
+		if (*(m_StartAddress + 1) == CharType(0)) {
 			return false;
 		}
 		++m_StartAddress;
@@ -106,13 +106,13 @@ class TString :
 	public Iteratable<typename CHAR_TRAITS::CHAR_TYPE> {
 private:
 	typedef typename CHAR_TRAITS::CHAR_TYPE CharType;
-	Array<CharType> m_CharArray;
-	Array<CharType> CreateCharArray(const CharType *chars, size_t length) {
+	Buffer<CharType> m_CharArray;
+	Buffer<CharType> CreateCharArray(const CharType *chars, size_t length) {
 		StdArray<CharType> content(length);
 		content.CopyFrom(chars, length);
 		return content;
 	}
-	TString(const Array<CharType> charArray, bool needCopy) :
+	TString(const Buffer<CharType> charArray, bool needCopy) :
 		m_CharArray(charArray) {
 	}
 
@@ -123,7 +123,7 @@ public:
 	TString(const CharType *cStyleString) :
 		TString(cStyleString, CHAR_TRAITS::Length(cStyleString)) {
 	}
-	TString(const Array<CharType> charArray) :
+	TString(const Buffer<CharType> charArray) :
 		TString(charArray.GetAddress(), charArray.GetLength()) {
 	}
 	inline size_t GetLength() const {
@@ -138,7 +138,7 @@ public:
 	}
 
 	template<typename FROM_CHAR_TRAITS, typename TO_CHAR_TRAITS>
-	static Array<typename TO_CHAR_TRAITS::CHAR_TYPE> ConvertEncoding(SmartPointer<Iterator<typename FROM_CHAR_TRAITS::CHAR_TYPE>> sourceString) {
+	static Buffer<typename TO_CHAR_TRAITS::CHAR_TYPE> ConvertEncoding(SmartPointer<Iterator<typename FROM_CHAR_TRAITS::CHAR_TYPE>> sourceString) {
 		Converter<FROM_CHAR_TRAITS, TO_CHAR_TRAITS> converter;
 		return Convert(converter, sourceString);
 	}
@@ -154,7 +154,7 @@ public:
 		return TString<CHAR_TRAITS>(ConvertEncoding<FROM_CHAR_TRAITS, CHAR_TRAITS>((&stringIterator).Cast<Iterator<typename FROM_CHAR_TRAITS::CHAR_TYPE>>()), false);
 	}
 	template<typename FROM_CHAR_TRAITS>
-	static TString<CHAR_TRAITS> From(const Array<typename FROM_CHAR_TRAITS::CHAR_TYPE> charArray) {
+	static TString<CHAR_TRAITS> From(const Buffer<typename FROM_CHAR_TRAITS::CHAR_TYPE> charArray) {
 		return From(charArray.GetAddress(), charArray.GetLength());
 	}
 	template<typename TO_CHAR_TRAITS>
@@ -162,7 +162,7 @@ public:
 		return TString<TO_CHAR_TRAITS>::From<CHAR_TRAITS>(m_CharArray);
 	}
 	template<typename TO_CHAR_TRAITS>
-	Array<typename TO_CHAR_TRAITS::CHAR_TYPE> ToArray() {
+	Buffer<typename TO_CHAR_TRAITS::CHAR_TYPE> ToArray() {
 		Scoped<CArrayIterator<CharType>> iterator(m_CharArray);
 		return ConvertEncoding<CHAR_TRAITS, TO_CHAR_TRAITS>((&iterator).Cast<Iterator<CharType>>());
 	}

@@ -15,19 +15,19 @@
 
 template<typename ELEMENT_TYPE>
 class StdArray :
-	public Array<ELEMENT_TYPE> {
+	public Buffer<ELEMENT_TYPE> {
 public:
-	static Array<ELEMENT_TYPE> Create(size_t length) {
+	static Buffer<ELEMENT_TYPE> Create(size_t length) {
 		AutoPointer<ELEMENT_TYPE, VectorDeleteTraits> pointer(new ELEMENT_TYPE[length]);
 		AutoPointer<VectorDeleteOperation<ELEMENT_TYPE, VectorDeleteTraits>, VectorDeleteTraits> deleteOperation(
 			new VectorDeleteOperation<ELEMENT_TYPE, VectorDeleteTraits>(pointer.Get()));
 		AutoPointer<MultiThreadReferenceCountMemoryManager<VectorDeleteTraits>, VectorDeleteTraits> manager(
 			new MultiThreadReferenceCountMemoryManager<VectorDeleteTraits>(deleteOperation.Get()));
 		deleteOperation.Release();
-		return Array<ELEMENT_TYPE>(pointer.Release(), manager.Release(), length);
+		return Buffer<ELEMENT_TYPE>(pointer.Release(), manager.Release(), length);
 	}
 	StdArray(size_t length) :
-		Array<ELEMENT_TYPE>(Create(length)) {
+		Buffer<ELEMENT_TYPE>(Create(length)) {
 	}
 };
 

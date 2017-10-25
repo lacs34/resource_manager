@@ -21,4 +21,31 @@ public:
 	virtual ~DeleteOperation() { }
 };
 
+class ManagerHolder {
+private:
+	MemoryManager *m_Manager;
+
+public:
+	inline ManagerHolder(MemoryManager *manager) :
+	    m_Manager(manager) {
+		if (manager != nullptr) {
+			manager->IncreaseReference();
+		}
+	}
+
+	inline MemoryManager* operator ->() {
+		return m_Manager;
+	}
+
+	inline operator MemoryManager*() {
+		return m_Manager;
+	}
+
+	inline ~ManagerHolder() {
+		if (m_Manager != nullptr) {
+			m_Manager->DecreaseReference();
+		}
+	}
+};
+
 #endif /* PROJECT_INCLUDE_MEMORY_MANAGER_INTERFACE_H_ */
