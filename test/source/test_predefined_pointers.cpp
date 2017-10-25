@@ -57,11 +57,11 @@ TEST_F(PredefinedPointersTest, TestStdPointerDeleteOperation)
 
 class TestAcceptManager {
 private:
-	MemoryManager *m_Manager;
+	ResourceManager *m_Manager;
 	int *m_Record;
 
 public:
-	TestAcceptManager(MemoryManager *manager, int *record) :
+	TestAcceptManager(ResourceManager *manager, int *record) :
 		m_Manager(manager),
 		m_Record(record) {
 	}

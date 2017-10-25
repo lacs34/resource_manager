@@ -12,7 +12,7 @@
 #include "delete_traits.h"
 
 class DummyMemoryManager :
-	public MemoryManager {
+	public ResourceManager {
 public:
 	virtual void IncreaseReference() override;
 	virtual void DecreaseReference() override;
@@ -21,7 +21,7 @@ extern DummyMemoryManager DummyManager;
 
 template<typename THREAD_TRAITS, typename DESTROY_TRAITS>
 class TReferenceCountMemoryManager :
-	public MemoryManager {
+	public ResourceManager {
 private:
 	DeleteOperation *m_DeleteOperation;
 	typename THREAD_TRAITS::REFERENCE_COUNT_TYPE m_ReferenceCount;

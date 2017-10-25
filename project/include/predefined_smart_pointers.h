@@ -23,7 +23,7 @@ template<typename OBJECT_TYPE, typename ...LEFTOVER_ARGS>
 class ObjectCreator<OBJECT_TYPE, const SelfManager*&, LEFTOVER_ARGS...> {
 public:
 	template<typename ...CONVERTED_ARGS>
-	static inline OBJECT_TYPE* CreateObject(MemoryManager *manager, const SelfManager *&current, LEFTOVER_ARGS&&... leftover, CONVERTED_ARGS&&... converted) {
+	static inline OBJECT_TYPE* CreateObject(ResourceManager *manager, const SelfManager *&current, LEFTOVER_ARGS&&... leftover, CONVERTED_ARGS&&... converted) {
 		return ObjectCreator<OBJECT_TYPE, LEFTOVER_ARGS...>::CreateObject(manager, std::forward<LEFTOVER_ARGS>(leftover)..., std::forward<CONVERTED_ARGS>(converted)..., manager);
 	}
 };
@@ -32,7 +32,7 @@ template<typename OBJECT_TYPE>
 class ObjectCreator<OBJECT_TYPE, const SelfManager*&> {
 public:
 	template<typename ...CONVERTED_ARGS>
-	static inline OBJECT_TYPE* CreateObject(MemoryManager *manager, const SelfManager *&current, CONVERTED_ARGS&&... converted) {
+	static inline OBJECT_TYPE* CreateObject(ResourceManager *manager, const SelfManager *&current, CONVERTED_ARGS&&... converted) {
 		return new OBJECT_TYPE(std::forward<CONVERTED_ARGS>(converted)..., manager);
 	}
 };
@@ -41,7 +41,7 @@ template<typename OBJECT_TYPE, typename CURRENT_ARG, typename ...LEFTOVER_ARGS>
 class ObjectCreator<OBJECT_TYPE, CURRENT_ARG, LEFTOVER_ARGS...> {
 public:
 	template<typename ...CONVERTED_ARGS>
-	static inline OBJECT_TYPE* CreateObject(MemoryManager *manager, CURRENT_ARG &&current, LEFTOVER_ARGS&&... leftover, CONVERTED_ARGS&&... converted) {
+	static inline OBJECT_TYPE* CreateObject(ResourceManager *manager, CURRENT_ARG &&current, LEFTOVER_ARGS&&... leftover, CONVERTED_ARGS&&... converted) {
 		return ObjectCreator<OBJECT_TYPE, LEFTOVER_ARGS...>::CreateObject(manager, std::forward<LEFTOVER_ARGS>(leftover)..., std::forward<CONVERTED_ARGS>(converted)..., std::forward<CURRENT_ARG>(current));
 	}
 };
@@ -50,7 +50,7 @@ template<typename OBJECT_TYPE>
 class ObjectCreator<OBJECT_TYPE> {
 public:
 	template<typename ...CONVERTED_ARGS>
-	static inline OBJECT_TYPE* CreateObject(MemoryManager *manager, CONVERTED_ARGS&&... converted) {
+	static inline OBJECT_TYPE* CreateObject(ResourceManager *manager, CONVERTED_ARGS&&... converted) {
 		return new OBJECT_TYPE(std::forward<CONVERTED_ARGS>(converted)...);
 	}
 };
@@ -67,7 +67,7 @@ public:
 			new ActivateDeleteOperation<StdDeleteOperation<POINTED_TYPE, DummyTraits>, StdDeleteTraits>);
 		AutoPointer<MultiThreadReferenceCountMemoryManager<StdDeleteTraits>, StdDeleteTraits> manager(
 			new MultiThreadReferenceCountMemoryManager<StdDeleteTraits>(deleteOperation.Get()));
-		AutoPointer<POINTED_TYPE, StdDeleteTraits> pointer(ObjectCreator<POINTED_TYPE, ARGS&&...>::CreateObject(static_cast<MemoryManager*>(manager.Get()), std::forward<ARGS>(args)...));
+		AutoPointer<POINTED_TYPE, StdDeleteTraits> pointer(ObjectCreator<POINTED_TYPE, ARGS&&...>::CreateObject(static_cast<ResourceManager*>(manager.Get()), std::forward<ARGS>(args)...));
 		deleteOperation->Activate(pointer.Get());
 		deleteOperation.Release();
 		return SmartPointer<POINTED_TYPE>(pointer.Release(), manager.Release());

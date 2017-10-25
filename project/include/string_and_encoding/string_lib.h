@@ -74,10 +74,10 @@ class CStyleStringIterator :
 private:
 	typedef typename CHAR_TRAITS::CHAR_TYPE CharType;
 	const CharType *m_StartAddress;
-	MemoryManager *m_Manager;
+	ResourceManager *m_Manager;
 
 public:
-	CStyleStringIterator(const CharType *startAddress, MemoryManager *manager = nullptr) :
+	CStyleStringIterator(const CharType *startAddress, ResourceManager *manager = nullptr) :
 		m_StartAddress(startAddress - 1),
 		m_Manager(manager) {
 		if (manager != nullptr) {

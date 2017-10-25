@@ -10,11 +10,61 @@
 
 #include "memory_manager_interface.h"
 
-template<typename POINTED_TYPE>
-class SmartPointer {
+template<typename RESOURCE_TYPE>
+class ResourceHolder {
 private:
-	POINTED_TYPE *m_Pointer;
-	MemoryManager *m_Manager;
+	RESOURCE_TYPE m_Resource;
+	ManagerHolder m_Manager;
+
+private:
+	void Clear() {
+		m_Manager = nullptr;
+	}
+	void Release() {
+		if (m_Manager != nullptr) {
+			m_Manager->DecreaseReference();
+			Clear();
+		}
+	}
+	inline bool EqualTo(SmartPointer<POINTED_TYPE> &pointer) {
+		return m_Pointer == pointer.m_Pointer;
+	}
+
+public:
+	ResourceHolder(RESOURCE_TYPE resource, ResourceManager *&manager) :
+		m_Resource(resource), m_Manager(manager) {
+	}
+	ResourceHolder(RESOURCE_TYPE resource, ResourceManager *&&manager) :
+		m_Resource(resource), m_Manager(std::move(manager)) {
+	}
+	ResourceHolder(const ResourceHolder<RESOURCE_TYPE> &resource) :
+		ResourceHolder(pointer.m_Pointer, pointer.m_Manager) {
+	}
+	ResourceHolder(ResourceHolder<RESOURCE_TYPE> &&resource) :
+		ResourceHolder(pointer.m_Pointer, std::move(pointer.m_Manager)) {
+	}
+
+	inline RESOURCE_TYPE& GetResource() {
+		return m_Resource;
+	}
+
+	inline operator RESOURCE_TYPE&() {
+		return m_Resource;
+	}
+
+	SmartPointer<POINTED_TYPE>& operator =(const SmartPointer<POINTED_TYPE> &pointer) {
+		ResourceManager *manager = pointer.m_Manager;
+		manager->IncreaseReference();
+		Clear();
+		m_Pointer = pointer.m_Pointer;
+		m_Manager = manager;
+		return *this;
+	}
+};
+
+template<typename POINTED_TYPE>
+class SmartPointer :
+    public ResourceHolder<POINTED_TYPE*> {
 
 private:
 	void Clear() {
@@ -32,7 +82,7 @@ private:
 	}
 
 public:
-	SmartPointer(POINTED_TYPE *pointer, MemoryManager *manager) :
+	SmartPointer(POINTED_TYPE *pointer, ResourceManager *manager) :
 		m_Pointer(pointer), m_Manager(manager) {
 	}
 	SmartPointer(const SmartPointer<POINTED_TYPE> &pointer) :
@@ -58,7 +108,7 @@ public:
 		if (EqualTo(pointer)) {
 			return *this;
 		}
-		MemoryManager *manager = pointer.m_Manager;
+		ResourceManager *manager = pointer.m_Manager;
 		manager->IncreaseReference();
 		Clear();
 		m_Pointer = pointer.m_Pointer;

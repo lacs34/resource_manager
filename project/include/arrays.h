@@ -23,7 +23,7 @@ private:
 	size_t m_Length;
 
 public:
-	Buffer(ELEMENT_TYPE *start_address, MemoryManager *manager, size_t length) :
+	Buffer(ELEMENT_TYPE *start_address, ResourceManager *manager, size_t length) :
 		m_StartAddress(start_address), m_Manager(manager), m_Length(length) {
 	}
 	Buffer(const Buffer<ELEMENT_TYPE> &source) :
@@ -38,7 +38,7 @@ public:
 	inline size_t GetLength() const {
 		return m_Length;
 	}
-	inline MemoryManager* GetManager() const {
+	inline ResourceManager* GetManager() const {
 		return m_Manager;
 	}
 	void CopyFrom(const ELEMENT_TYPE *array, size_t count) {
@@ -86,7 +86,7 @@ public:
 	inline size_t GetLength() const {
 		return ELEMENT_COUNT;
 	}
-	inline MemoryManager* GetManager() const {
+	inline ResourceManager* GetManager() const {
 		return &DummyManager;
 	}
 	void CopyFrom(const ELEMENT_TYPE *array, size_t count) {
@@ -134,7 +134,7 @@ private:
 	ManagerHolder m_Manager;
 
 public:
-	CBufferIterator(const ELEMENT_TYPE *startAddress, std::size_t length, MemoryManager *manager = nullptr) :
+	CBufferIterator(const ELEMENT_TYPE *startAddress, std::size_t length, ResourceManager *manager = nullptr) :
 		m_StartAddress(startAddress - 1),
 		m_Length(length),
 		m_Manager(manager) {
@@ -143,7 +143,7 @@ public:
 		CArrayIterator(buffer.GetAddress(), buffer.GetLength(), buffer.GetManager()) {
 	}
 	template<std::size_t BUFFER_SIZE>
-	CBufferIterator(const ELEMENT_TYPE (&buffer)[BUFFER_SIZE], MemoryManager *manager = nullptr) :
+	CBufferIterator(const ELEMENT_TYPE (&buffer)[BUFFER_SIZE], ResourceManager *manager = nullptr) :
 		CArrayIterator(buffer, BUFFER_SIZE, manager) {
 	}
 	virtual bool MoveNext() override {

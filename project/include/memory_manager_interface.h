@@ -8,11 +8,11 @@
 #ifndef PROJECT_INCLUDE_MEMORY_MANAGER_INTERFACE_H_
 #define PROJECT_INCLUDE_MEMORY_MANAGER_INTERFACE_H_
 
-class MemoryManager {
+class ResourceManager {
 public:
 	virtual void IncreaseReference() = 0;
 	virtual void DecreaseReference() = 0;
-	virtual ~MemoryManager() { }
+	virtual ~ResourceManager() { }
 };
 
 class DeleteOperation {
@@ -21,24 +21,77 @@ public:
 	virtual ~DeleteOperation() { }
 };
 
+inline ResourceManager* IncreaseAndReturn(ResourceManager *manager) {
+	if (manager != nullptr) {
+		manager->IncreaseReference();
+	}
+	return manager;
+}
+
+inline ResourceManager* ClearAndReturn(ResourceManager *&&manager) {
+	ResourceManager *copiedManager = manager;
+	manager = nullptr;
+	return copiedManager;
+}
+
 class ManagerHolder {
 private:
-	MemoryManager *m_Manager;
-
-public:
-	inline ManagerHolder(MemoryManager *manager) :
-	    m_Manager(manager) {
-		if (manager != nullptr) {
-			manager->IncreaseReference();
+	ResourceManager *m_Manager;
+	void Release() {
+		if (m_Manager != nullptr) {
+			m_Manager->DecreaseReference();
+			m_Manager = nullptr;
 		}
 	}
 
-	inline MemoryManager* operator ->() {
+public:
+	inline ManagerHolder(ResourceManager *&manager) :
+	    m_Manager(IncreaseAndReturn(manager)) {
+	}
+	inline ManagerHolder(ResourceManager *&&manager) :
+		m_Manager(ClearAndReturn(std::move(manager))) {
+	}
+	inline ManagerHolder(ManagerHolder &holder) :
+		m_Manager(IncreaseAndReturn(holder.m_Manager)) {
+	}
+	inline ManagerHolder(ManagerHolder &&holder) :
+		m_Manager(ClearAndReturn(std::move(holder.m_Manager))) {
+	}
+
+	inline ResourceManager* operator ->() {
 		return m_Manager;
 	}
 
-	inline operator MemoryManager*() {
+	inline operator ResourceManager*() {
 		return m_Manager;
+	}
+
+	inline ManagerHolder& operator =(ResourceManager *&manager) {
+		ManagerHolder holder(manager);
+		Release();
+		m_Manager = ClearAndReturn(std::move(holder.m_Manager));
+		return *this;
+	}
+
+	inline ManagerHolder& operator =(ResourceManager *&&manager) {
+		ManagerHolder holder(std::move(manager));
+		Release();
+		m_Manager = ClearAndReturn(std::move(holder.m_Manager));
+		return *this;
+	}
+
+	inline ManagerHolder& operator =(ManagerHolder &manager) {
+		ManagerHolder holder(manager);
+		Release();
+		m_Manager = ClearAndReturn(std::move(holder.m_Manager));
+		return *this;
+	}
+
+	inline ManagerHolder& operator =(ManagerHolder &&manager) {
+		ManagerHolder holder(std::move(manager));
+		Release();
+		m_Manager = ClearAndReturn(std::move(holder.m_Manager));
+		return *this;
 	}
 
 	inline ~ManagerHolder() {
