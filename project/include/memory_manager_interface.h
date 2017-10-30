@@ -24,16 +24,8 @@ public:
 };
 
 inline ResourceManager* IncreaseAndReturn(ResourceManager *manager) {
-	if (manager != nullptr) {
-		manager->IncreaseReference();
-	}
+	manager->IncreaseReference();
 	return manager;
-}
-
-inline ResourceManager* ClearAndReturn(ResourceManager *&&manager) {
-	ResourceManager *copiedManager = manager;
-	manager = nullptr;
-	return copiedManager;
 }
 
 template<typename POINTED_TYPE, typename POINTER_WRAPPER, typename BASE>
@@ -41,13 +33,7 @@ class PointerCommonOperation :
     public BASE {
 public:
 	friend POINTER_WRAPPER;
-
-	inline PointerCommonOperation(POINTED_TYPE *pointer) :
-		BASE(pointer) {
-	}
-	inline PointerCommonOperation(const POINTED_TYPE *pointer) :
-		BASE(pointer) {
-	}
+	using BASE::BASE;
 
 	inline POINTED_TYPE* operator ->() {
 		return GetPointer();
@@ -126,7 +112,7 @@ class SimplePointerOperationBase {
 private:
 	POINTED_TYPE *m_Pointer;
 
-	inline POINTED_TYPE* GetPointer() {
+	inline POINTED_TYPE* GetPointer() const {
 		return m_Pointer;
 	}
 
@@ -156,41 +142,42 @@ private:
 	}
 
 public:
-	inline ManagerHolder(ResourceManager *&manager) :
-		PointerCommonOperation(IncreaseAndReturn(manager)) {
+	inline ManagerHolder(ResourceManager &manager) :
+		PointerCommonOperation(IncreaseAndReturn(&manager)) {
 	}
-	inline ManagerHolder(ResourceManager *&&manager) :
-		PointerCommonOperation(ClearAndReturn(std::move(manager))) {
+	inline ManagerHolder(ResourceManager &&manager) :
+		PointerCommonOperation(&manager) {
 	}
-	inline ManagerHolder(ManagerHolder &holder) :
+	inline ManagerHolder(const ManagerHolder &holder) :
 		PointerCommonOperation(IncreaseAndReturn(holder.m_Pointer)) {
 	}
 	inline ManagerHolder(ManagerHolder &&holder) :
-		PointerCommonOperation(ClearAndReturn(std::move(holder.m_Pointer))) {
+		PointerCommonOperation(holder.Detach()) {
 	}
 
-	inline void Attach(ResourceManager *&manager) {
+	ResourceManager& GetManager() const {
+		return *m_Pointer;
+	}
+
+	inline void Attach(ResourceManager &manager) {
 		ManagerHolder holder(manager);
 		Release();
-		m_Pointer = ClearAndReturn(std::move(holder.m_Pointer));
+		m_Pointer = holder.Detach();
 	}
 
-	inline void Attach(ResourceManager *&&manager) {
-		ManagerHolder holder(std::move(manager));
+	inline void Attach(ResourceManager &&manager) {
 		Release();
-		m_Pointer = ClearAndReturn(std::move(holder.m_Pointer));
+		m_Pointer = &manager;
 	}
 
-	inline void Attach(ManagerHolder &manager) {
-		ManagerHolder holder(manager);
+	inline void Attach(ManagerHolder &holder) {
 		Release();
-		m_Pointer = ClearAndReturn(std::move(holder.m_Pointer));
+		m_Pointer = IncreaseAndReturn(holder.m_Pointer);
 	}
 
-	inline void Attach(ManagerHolder &&manager) {
-		ManagerHolder holder(std::move(manager));
+	inline void Attach(ManagerHolder &&holder) {
 		Release();
-		m_Pointer = ClearAndReturn(std::move(holder.m_Pointer));
+		m_Pointer = holder.Detach();
 	}
 
 	inline ResourceManager* Detach() {
@@ -199,12 +186,12 @@ public:
 		return manager;
 	}
 
-	inline ManagerHolder& operator =(ResourceManager *&manager) {
+	inline ManagerHolder& operator =(ResourceManager &manager) {
 		Attach(manager);
 		return *this;
 	}
 
-	inline ManagerHolder& operator =(ResourceManager *&&manager) {
+	inline ManagerHolder& operator =(ResourceManager &&manager) {
 		Attach(std::move(manager));
 		return *this;
 	}

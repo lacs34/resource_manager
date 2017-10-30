@@ -14,7 +14,7 @@ static void ThreadStartProc(SmartPointer<Runnable> threadProc) {
 }
 
 Thread::Thread(SmartPointer<Runnable> threadProc) :
-    m_ThreadProc(threadProc) {
+    m_ThreadProc(std::move(threadProc)) {
 }
 
 void Thread::StartThread() {
@@ -26,7 +26,7 @@ SmartPointer<Thread> Thread::Start(SmartPointer<Runnable> target) {
 	AutoPointer<StdDeleteOperation<Thread, StdDeleteTraits>, StdDeleteTraits> threadDeleteOperation(new StdDeleteOperation<Thread, StdDeleteTraits>(thread.Get()));
 	AutoPointer<MultiThreadReferenceCountMemoryManager<StdDeleteTraits>, StdDeleteTraits> threadMemoryManager(new MultiThreadReferenceCountMemoryManager<StdDeleteTraits>(threadDeleteOperation.Get()));
 	threadDeleteOperation.Release();
-	SmartPointer<Thread> threadSmartPointer(thread.Release(), threadMemoryManager.Release());
+	SmartPointer<Thread> threadSmartPointer(std::move(*threadMemoryManager.Release()), thread.Release());
 	threadSmartPointer->StartThread();
 	return threadSmartPointer;
 }

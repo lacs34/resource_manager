@@ -70,7 +70,8 @@ public:
 		AutoPointer<POINTED_TYPE, StdDeleteTraits> pointer(ObjectCreator<POINTED_TYPE, ARGS&&...>::CreateObject(static_cast<ResourceManager*>(manager.Get()), std::forward<ARGS>(args)...));
 		deleteOperation->Activate(pointer.Get());
 		deleteOperation.Release();
-		return SmartPointer<POINTED_TYPE>(pointer.Release(), manager.Release());
+		SmartPointer<POINTED_TYPE> createdPointer(std::move(*manager.Release()), pointer.Release());
+		return createdPointer;
 	}
 	template<typename ...ARGS>
 	StdPointer(ARGS&&... args) :
@@ -90,7 +91,8 @@ public:
 	}
 
 	SmartPointer<OBJECT_TYPE> operator &() {
-		return SmartPointer<OBJECT_TYPE>(&m_Object, &DummyManager);
+		SmartPointer<OBJECT_TYPE> objectPointer(DummyManager, &m_Object);
+		return objectPointer;
 	}
 
 	OBJECT_TYPE* operator ->() {

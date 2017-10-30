@@ -23,8 +23,11 @@ private:
 	size_t m_Length;
 
 public:
-	Buffer(ELEMENT_TYPE *start_address, ResourceManager *manager, size_t length) :
+	Buffer(ELEMENT_TYPE *start_address, ResourceManager &manager, size_t length) :
 		m_StartAddress(start_address), m_Manager(manager), m_Length(length) {
+	}
+	Buffer(ELEMENT_TYPE *start_address, ResourceManager &&manager, size_t length) :
+		m_StartAddress(start_address), m_Manager(std::move(manager)), m_Length(length) {
 	}
 	Buffer(const Buffer<ELEMENT_TYPE> &source) :
 		m_StartAddress(source.m_StartAddress), m_Manager(source.m_Manager), m_Length(source.m_Length) {
@@ -134,17 +137,32 @@ private:
 	ManagerHolder m_Manager;
 
 public:
-	CBufferIterator(const ELEMENT_TYPE *startAddress, std::size_t length, ResourceManager *manager = nullptr) :
+	CBufferIterator(const ELEMENT_TYPE *startAddress, std::size_t length, ResourceManager &manager = DummyManager) :
 		m_StartAddress(startAddress - 1),
 		m_Length(length),
 		m_Manager(manager) {
 	}
+	CBufferIterator(const ELEMENT_TYPE *startAddress, std::size_t length, ResourceManager &&manager) :
+		m_StartAddress(startAddress - 1),
+		m_Length(length),
+		m_Manager(std::move(manager)) {
+	}
+	CBufferIterator(const ELEMENT_TYPE *startAddress, std::size_t length, ManagerHolder &holder) :
+		m_StartAddress(startAddress - 1),
+		m_Length(length),
+		m_Manager(holder) {
+	}
+	CBufferIterator(const ELEMENT_TYPE *startAddress, std::size_t length, ManagerHolder &&holder) :
+		m_StartAddress(startAddress - 1),
+		m_Length(length),
+		m_Manager(std::move(holder)) {
+	}
 	CBufferIterator(const Buffer<ELEMENT_TYPE> buffer) :
-		CArrayIterator(buffer.GetAddress(), buffer.GetLength(), buffer.GetManager()) {
+		CBufferIterator(buffer.GetAddress(), buffer.GetLength(), buffer.GetManager()) {
 	}
 	template<std::size_t BUFFER_SIZE>
 	CBufferIterator(const ELEMENT_TYPE (&buffer)[BUFFER_SIZE], ResourceManager *manager = nullptr) :
-		CArrayIterator(buffer, BUFFER_SIZE, manager) {
+		CBufferIterator(buffer, BUFFER_SIZE, manager) {
 	}
 	virtual bool MoveNext() override {
 		if (m_Length == 0) {

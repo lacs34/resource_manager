@@ -24,7 +24,8 @@ public:
 		AutoPointer<MultiThreadReferenceCountMemoryManager<VectorDeleteTraits>, VectorDeleteTraits> manager(
 			new MultiThreadReferenceCountMemoryManager<VectorDeleteTraits>(deleteOperation.Get()));
 		deleteOperation.Release();
-		return Buffer<ELEMENT_TYPE>(pointer.Release(), manager.Release(), length);
+		Buffer<ELEMENT_TYPE> createdBuffer(pointer.Release(), std::move(*manager.Release()), length);
+		return createdBuffer;
 	}
 	StdArray(size_t length) :
 		Buffer<ELEMENT_TYPE>(Create(length)) {

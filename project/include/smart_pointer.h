@@ -10,8 +10,42 @@
 
 #include "memory_manager_interface.h"
 
-template<typename ...RESOURCE_PASSING_TYPES>
-class ResourcePassTypeList {
+template<typename RESOURCE_TYPE>
+class CommonResourceContainer {
+private:
+	RESOURCE_TYPE m_Resource;
+
+public:
+	typedef RESOURCE_TYPE& OUT_PASSING_TYPE;
+	template<typename ...CONSTRUCTOR_ARGUMENTS>
+	inline CommonResourceContainer(CONSTRUCTOR_ARGUMENTS &&...arguments) :
+		m_Resource(std::forward<CONSTRUCTOR_ARGUMENTS>(arguments)...) {
+	}
+	inline CommonResourceContainer(CommonResourceContainer<RESOURCE_TYPE> &container) :
+		m_Resource(container.m_Resource) {
+	}
+	inline CommonResourceContainer(CommonResourceContainer<RESOURCE_TYPE> &&container) :
+		m_Resource(std::move(container.m_Resource)) {
+	}
+
+	inline OUT_PASSING_TYPE GetResource() {
+		return m_Resource;
+	}
+	inline void SetResource(RESOURCE_TYPE &resource) {
+		m_Resource = resource;
+	}
+	inline void SetResource(RESOURCE_TYPE &&resource) {
+		m_Resource = std::move(resource);
+	}
+
+	inline bool IsSameResource(RESOURCE_TYPE &resource) {
+		return m_Resource == resource;
+	}
+	inline bool IsSameResource(RESOURCE_TYPE &&resource) {
+		return m_Resource == std::move(resource);
+	}
+	inline void ResetToDefault() {
+	}
 };
 
 template<typename RESOURCE_TYPE, RESOURCE_TYPE DEFAULT_VALUE>
@@ -21,12 +55,15 @@ private:
 
 public:
 	typedef RESOURCE_TYPE OUT_PASSING_TYPE;
-	typedef ResourcePassTypeList<RESOURCE_TYPE> IN_PASSING_TYPES;
+	inline ValueResourceContainer(const ValueResourceContainer<RESOURCE_TYPE, DEFAULT_VALUE> &resource) :
+		m_Resource(resource.m_Resource) {
+	}
+	inline ValueResourceContainer(ValueResourceContainer<RESOURCE_TYPE, DEFAULT_VALUE> &&resource) :
+		m_Resource(resource.m_Resource) {
+		resource.ResetToDefault();
+	}
 	inline ValueResourceContainer(RESOURCE_TYPE resource) :
 		m_Resource(resource) {
-	}
-	inline ValueResourceContainer(ValueResourceContainer<RESOURCE_TYPE, DEFAULT_VALUE> &resource) :
-		m_Resource(resource.m_Resource) {
 	}
 
 	inline RESOURCE_TYPE GetResource() {
@@ -44,74 +81,84 @@ public:
 	}
 };
 
-template<typename RESOURCE_CONTAINER>
-class TResourceHolder;
-
-template<typename RESOURCE_CONTAINER, typename IN_PASSING_TYPE_HEADER, typename ...RESOURCE_PASSING_TYPES>
-class TResourceHolderBase :
-    public TResourceHolderBase<RESOURCE_CONTAINER, RESOURCE_PASSING_TYPES...> {
+template<typename POINTED_TYPE>
+class CommonResourceContainer<POINTED_TYPE*> :
+    public ValueResourceContainer<POINTED_TYPE*, nullptr> {
 public:
-	using TResourceHolderBase<RESOURCE_CONTAINER, RESOURCE_PASSING_TYPES...>::TResourceHolderBase;
-	TResourceHolderBase(IN_PASSING_TYPE_HEADER resource, ResourceManager *&manager) :
-		m_Resource(std::forward<IN_PASSING_TYPE_HEADER>(resource)), m_Manager(manager) {
-	}
-	TResourceHolderBase(IN_PASSING_TYPE_HEADER resource, ResourceManager *&&manager) :
-		m_Resource(std::forward<IN_PASSING_TYPE_HEADER>(resource)), m_Manager(std::move(manager)) {
-	}
-	
-	inline void Attach(IN_PASSING_TYPE_HEADER resource, ResourceManager *&manager) {
-		m_Resource.SetResource(resource);
-		m_Manager = manager;
-	}
-	inline void Attach(IN_PASSING_TYPE_HEADER resource, ResourceManager *&&manager) {
-		m_Resource.SetResource(resource);
-		m_Manager = std::move(manager);
-	}
+	using ValueResourceContainer<POINTED_TYPE*, nullptr>::ValueResourceContainer;
 };
 
-template<typename RESOURCE_CONTAINER, typename IN_PASSING_TYPE>
-class TResourceHolderBase<RESOURCE_CONTAINER, IN_PASSING_TYPE> {
+template<>
+class CommonResourceContainer<signed char> :
+	public ValueResourceContainer<signed char, (signed char)0> {
+public:
+	using ValueResourceContainer<signed char, (signed char)0>::ValueResourceContainer;
+};
+template<>
+class CommonResourceContainer<unsigned char> :
+	public ValueResourceContainer<unsigned char, (unsigned char)0> {
+public:
+	using ValueResourceContainer<unsigned char, (unsigned char)0>::ValueResourceContainer;
+};
+
+template<>
+class CommonResourceContainer<short> :
+	public ValueResourceContainer<short, (short)0> {
+public:
+	using ValueResourceContainer<short, (short)0>::ValueResourceContainer;
+};
+template<>
+class CommonResourceContainer<unsigned short> :
+	public ValueResourceContainer<unsigned short, (unsigned short)0> {
+public:
+	using ValueResourceContainer<unsigned short, (unsigned short)0>::ValueResourceContainer;
+};
+
+template<>
+class CommonResourceContainer<int> :
+	public ValueResourceContainer<int, 0> {
+public:
+	using ValueResourceContainer<int, 0>::ValueResourceContainer;
+};
+template<>
+class CommonResourceContainer<unsigned> :
+	public ValueResourceContainer<unsigned, 0U> {
+public:
+	using ValueResourceContainer<unsigned, 0U>::ValueResourceContainer;
+};
+
+template<>
+class CommonResourceContainer<long> :
+	public ValueResourceContainer<long, 0L> {
+public:
+	using ValueResourceContainer<long, 0L>::ValueResourceContainer;
+};
+template<>
+class CommonResourceContainer<unsigned long> :
+	public ValueResourceContainer<unsigned long, 0UL> {
+public:
+	using ValueResourceContainer<unsigned long, 0UL>::ValueResourceContainer;
+};
+
+template<>
+class CommonResourceContainer<long long> :
+	public ValueResourceContainer<long long, 0LL> {
+public:
+	using ValueResourceContainer<long long, 0LL>::ValueResourceContainer;
+};
+template<>
+class CommonResourceContainer<unsigned long long> :
+	public ValueResourceContainer<unsigned long long, 0ULL> {
+public:
+	using ValueResourceContainer<unsigned long long, 0ULL>::ValueResourceContainer;
+};
+
+template<typename RESOURCE_CONTAINER>
+class TResourceHolder {
 private:
 	RESOURCE_CONTAINER m_Resource;
 	ManagerHolder m_Manager;
-
-public:
-	TResourceHolderBase(IN_PASSING_TYPE resource, ResourceManager *&manager) :
-		m_Resource(std::forward<IN_PASSING_TYPE>(resource)), m_Manager(manager) {
-	}
-	TResourceHolderBase(IN_PASSING_TYPE resource, ResourceManager *&&manager) :
-		m_Resource(std::forward<IN_PASSING_TYPE>(resource)), m_Manager(std::move(manager)) {
-	}
-
-	inline void Attach(IN_PASSING_TYPE resource, ResourceManager *&manager) {
-		m_Resource.SetResource(std::forward<IN_PASSING_TYPE>(resource));
-		m_Manager = manager;
-	}
-	inline void Attach(IN_PASSING_TYPE resource, ResourceManager *&&manager) {
-		m_Resource.SetResource(std::forward<IN_PASSING_TYPE>(resource));
-		m_Manager = std::move(manager);
-	}
-};
-
-template<typename RESOURCE_CONTAINER, typename IN_PASSING_TYPE>
-class TypeListToHolderBaseHelper {
-public:
-	typedef TResourceHolderBase<IN_PASSING_TYPE, IN_PASSING_TYPE> HOLDER_BASE;
-};
-
-template<typename RESOURCE_CONTAINER, typename ...IN_PASSING_TYPES>
-class TypeListToHolderBaseHelper<RESOURCE_CONTAINER, ResourcePassTypeList<IN_PASSING_TYPES...>> {
-public:
-	typedef TResourceHolderBase<RESOURCE_CONTAINER, IN_PASSING_TYPES...> HOLDER_BASE;
-};
-
-template<typename RESOURCE_CONTAINER>
-class TResourceHolder :
-	public TypeListToHolderBaseHelper<RESOURCE_CONTAINER, typename RESOURCE_CONTAINER::IN_PASSING_TYPES>::HOLDER_BASE {
-private:
-	RESOURCE_CONTAINER m_Resource;
-	ManagerHolder m_Manager;
-	typedef typename RESOURCE_CONTAINER::RESOURCE_PASSING_TYPE RESOURCE_TYPE;
+	typedef typename RESOURCE_CONTAINER::OUT_PASSING_TYPE RESOURCE_TYPE;
 
 private:
 	void Clear() {
@@ -126,47 +173,49 @@ private:
 	}
 
 public:
-	TResourceHolder(RESOURCE_TYPE resource, ResourceManager *&manager) :
-		m_Resource(resource), m_Manager(manager) {
+	template<typename ...RESOURCE_CONSTRUCT_TYPES>
+	TResourceHolder(ResourceManager &manager, RESOURCE_CONSTRUCT_TYPES &&...args) :
+		m_Resource(std::forward<RESOURCE_CONSTRUCT_TYPES>(args)...), m_Manager(manager) {
 	}
-	TResourceHolder(RESOURCE_TYPE resource, ResourceManager *&&manager) :
-		m_Resource(resource), m_Manager(std::move(manager)) {
+	template<typename ...RESOURCE_CONSTRUCT_TYPES>
+	TResourceHolder(ResourceManager &&manager, RESOURCE_CONSTRUCT_TYPES &&...args) :
+		m_Resource(std::forward<RESOURCE_CONSTRUCT_TYPES>(args)...), m_Manager(std::move(manager)) {
 	}
 	TResourceHolder(const TResourceHolder<RESOURCE_CONTAINER> &resource) :
-		TResourceHolder(pointer.m_Pointer, pointer.m_Manager) {
+		m_Resource(resource.m_Resource), m_Manager(resource.m_Manager) {
 	}
 	TResourceHolder(TResourceHolder<RESOURCE_CONTAINER> &&resource) :
-		TResourceHolder(pointer.m_Pointer, std::move(pointer.m_Manager)) {
+		m_Resource(std::move(resource.m_Resource)), m_Manager(std::move(resource.m_Manager)) {
 	}
 
 	inline RESOURCE_TYPE GetResource() {
-		return m_Resource;
+		return m_Resource.GetResource();
+	}
+
+	inline ResourceManager& GetManager() const {
+		return m_Manager.GetManager();
 	}
 
 	inline operator RESOURCE_TYPE() {
-		return m_Resource;
+		return m_Resource.GetResource();
 	}
 
-	inline void Attach(const TResourceHolder<RESOURCE_TYPE> &holder) {
-		ResourceManager *manager = holder.m_Manager;
-		manager->IncreaseReference();
-		Clear();
-		m_Pointer = holder.m_Pointer;
-		m_Manager = manager;
-		return *this;
+	inline void Attach(const TResourceHolder<RESOURCE_CONTAINER> &holder) {
+		m_Resource.SetResource(holder.m_Resource);
+		m_Manager = holder.manager;
 	}
-	inline void Attach(TResourceHolder<RESOURCE_TYPE> &&holder) {
-		Clear();
-		m_Resource.SetResource(holder.GetResource());
-		m_Manager = resource.m_Manager;
-		holder.Clear();
+	inline void Attach(TResourceHolder<RESOURCE_CONTAINER> &&holder) {
+		m_Resource.SetResource(std::move(holder.m_Resource));
+		m_Manager = std::move(holder.m_Manager);
 	}
-	inline void Attach(RESOURCE_TYPE resource, ResourceManager *&manager) {
-		m_Resource.SetResource(resource);
+	template<typename ...RESOURCE_ATTACH_TYPES>
+	inline void Attach(ResourceManager &manager, RESOURCE_ATTACH_TYPES &&...args) {
+		m_Resource.SetResource(std::forward<RESOURCE_ATTACH_TYPES>(args)...);
 		m_Manager = manager;
 	}
-	inline void Attach(RESOURCE_TYPE resource, ResourceManager *&&manager) {
-		m_Resource.SetResource(resource);
+	template<typename ...RESOURCE_ATTACH_TYPES>
+	inline void Attach(ResourceManager &&manager, RESOURCE_ATTACH_TYPES &&...args) {
+		m_Resource.SetResource(std::forward<RESOURCE_ATTACH_TYPES>(args)...);
 		m_Manager = std::move(manager);
 	}
 
@@ -175,12 +224,12 @@ public:
 		m_Manager.Detach();
 	}
 
-	inline TResourceHolder<RESOURCE_TYPE>& operator =(const TResourceHolder<RESOURCE_TYPE> &resource) {
+	inline TResourceHolder<RESOURCE_CONTAINER>& operator =(const TResourceHolder<RESOURCE_CONTAINER> &resource) {
 		Attach(resource);
 		return *this;
 	}
 
-	inline TResourceHolder<RESOURCE_TYPE>& operator =(TResourceHolder<RESOURCE_TYPE> &&resource) {
+	inline TResourceHolder<RESOURCE_CONTAINER>& operator =(TResourceHolder<RESOURCE_CONTAINER> &&resource) {
 		Attach(std::move(resource));
 		return *this;
 	}
@@ -192,10 +241,15 @@ public:
 	}
 };
 
+template<typename RESOURCE_TYPE>
+using ResourceHolder = TResourceHolder<CommonResourceContainer<RESOURCE_TYPE>>;
+
 template<typename POINTED_TYPE>
 class PointerResourceAdapter :
-	public ResourceHolder<PointerResourceContainer<POINTED_TYPE>> {
-private:
+	public TResourceHolder<ValueResourceContainer<POINTED_TYPE*, nullptr>> {
+public:
+	using TResourceHolder<ValueResourceContainer<POINTED_TYPE*, nullptr>>::TResourceHolder;
+
 	inline POINTED_TYPE* GetPointer() {
 		return GetResource();
 	}
@@ -220,48 +274,35 @@ private:
 	}
 
 public:
-	SmartPointer(POINTED_TYPE *pointer, ResourceManager *manager) :
-		m_Pointer(pointer), m_Manager(manager) {
-	}
+	using PointerCommonOperation<POINTED_TYPE, SmartPointer<POINTED_TYPE>, PointerResourceAdapter<POINTED_TYPE>>::PointerCommonOperation;
+
 	SmartPointer(const SmartPointer<POINTED_TYPE> &pointer) :
-		SmartPointer(pointer.m_Pointer, pointer.m_Manager) {
-		if (m_Manager != nullptr) {
-			m_Manager->IncreaseReference();
-		}
+		PointerCommonOperation(pointer) {
 	}
 	SmartPointer(SmartPointer<POINTED_TYPE> &&pointer) :
-		SmartPointer(pointer.m_Pointer, pointer.m_Manager) {
-		pointer.Clear();
-	}
-	POINTED_TYPE* operator ->() {
-		return m_Pointer;
-	}
-	const POINTED_TYPE* operator ->() const {
-		return m_Pointer;
-	}
-	POINTED_TYPE* GetPointer() const {
-		return m_Pointer;
+		PointerCommonOperation(std::move(pointer)) {
 	}
 	SmartPointer<POINTED_TYPE>& operator =(const SmartPointer<POINTED_TYPE> &pointer) {
 		if (EqualTo(pointer)) {
 			return *this;
 		}
-		ResourceManager *manager = pointer.m_Manager;
-		manager->IncreaseReference();
-		Clear();
-		m_Pointer = pointer.m_Pointer;
-		m_Manager = manager;
+		Attach(pointer);
+		return *this;
+	}
+	SmartPointer<POINTED_TYPE>& operator =(const SmartPointer<POINTED_TYPE> &&pointer) {
+		if (EqualTo(pointer)) {
+			return *this;
+		}
+		Attach(std::move(pointer));
 		return *this;
 	}
 	template<typename DEST_TYPE>
 	SmartPointer<DEST_TYPE> Cast() {
-		if (m_Manager != nullptr) {
-			m_Manager->IncreaseReference();
+		if (&GetManager() != nullptr) {
+			GetManager().IncreaseReference();
 		}
-		return SmartPointer<DEST_TYPE>(static_cast<DEST_TYPE*>(m_Pointer), m_Manager);
-	}
-	~SmartPointer() {
-		Release();
+		SmartPointer<DEST_TYPE> destPointer(GetManager(), static_cast<DEST_TYPE*>(GetPointer()));
+		return destPointer;
 	}
 };
 
