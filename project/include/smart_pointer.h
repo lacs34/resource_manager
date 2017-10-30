@@ -233,12 +233,6 @@ public:
 		Attach(std::move(resource));
 		return *this;
 	}
-
-	virtual ~TResourceHolder() {
-		if (m_Manager != nullptr) {
-			m_Manager->DecreaseReference();
-		}
-	}
 };
 
 template<typename RESOURCE_TYPE>
