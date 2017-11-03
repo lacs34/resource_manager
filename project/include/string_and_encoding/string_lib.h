@@ -14,7 +14,7 @@
 #include "common_definition.h"
 #include "collections/collections_interfaces.h"
 #include "predefined_array.h"
-#include "string_and_encoding/unicode_converters.h"
+#include <basic_types.h>
 #include <queue>
 #include <vector>
 #include <cuchar>
@@ -35,12 +35,6 @@ class IllegalInputFormatException :
 
 template<typename FROM_TYPE, typename TO_TYPE>
 class ConverterPicker{
-};
-
-template<>
-class ConverterPicker<StdCharTraits<char>, StdCharTraits<char16_t>> {
-public:
-	typedef Utf8ToUtf16Converter CONVERTER_TYPE;
 };
 
 template<typename FROM_TYPE, typename TO_TYPE>
@@ -194,7 +188,35 @@ bool operator ==(const typename CHAR_TRAITS::CHAR_TYPE *string1, const TString<C
 	return IsEqual<CHAR_TRAITS>(string1, length1, string2.m_CharArray.GetAddress(), length2);
 }
 
-typedef TString<StdCharTraits<char16_t>> String;
+typedef TString<Utf16Encoding> String;
+
+// Stands for a character in the Universal Coded Character Set (UCS),
+// which is a standard set of characters defined by the International Standard ISO/IEC 10646,
+// Information technology ¡ª Universal Coded Character Set (UCS) (plus amendments to that standard),
+// which is the basis of many character encodings.
+class CodePoint {
+public:
+	static constexpr Int64 maxCodePoint = static_cast<Int64>(0x10FFFF);
+	typedef SmallestUnsignedStorage<maxCodePoint> VALUE_TYPE;
+
+private:
+	SmallestUnsignedStorage<maxCodePoint> m_Value;
+
+public:
+	CodePoint(SmallestUnsignedStorage<maxCodePoint> value) :
+		m_Value(value) {
+	}
+	String GetCharName();
+
+};
+
+#include "string_and_encoding/unicode_converters.h"
+
+template<>
+class ConverterPicker<StdCharTraits<char>, StdCharTraits<char16_t>> {
+public:
+	typedef Utf8ToUtf16Converter CONVERTER_TYPE;
+};
 
 String operator ""_s(const char16_t *chars, std::size_t length);
 TString<StdCharTraits<char>> operator ""_s(const char *chars, std::size_t length);

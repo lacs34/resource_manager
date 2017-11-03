@@ -26,6 +26,12 @@ enum MoveResult {
 	MOVE_TO_END_HALF_CHAR
 };
 
+enum EncodeResult {
+	ENCODE_SUCCEED,
+	UNABLE_TO_ENCODE,
+	ENCODE_TO_END
+};
+
 class Utf16DataEncoder {
 private:
 	static constexpr CodePoint::VALUE_TYPE maxSingleChar = 0x10000;
@@ -44,14 +50,14 @@ public:
 	Utf16DataEncoder() :
 		m_State(END) {
 	}
-	void ResetBuffer(const Buffer<char16_t> &sourceBuffer) {
+	inline void ResetBuffer(const Buffer<char16_t> &sourceBuffer) {
 		m_CurrentPosition = sourceBuffer.GetAddress();
 		m_EndPosition = m_CurrentPosition + sourceBuffer.GetLength();
 	}
-	const char16_t* GetCurrentPosition() {
+	inline const char16_t* GetCurrentPosition() {
 		return m_CurrentPosition;
 	}
-	bool Flush() {
+	EncodeResult Flush() {
 		while (m_CurrentPosition < m_EndPosition && m_State != END) {
 			switch (m_State) {
 			case SINGLE_BEGIN:
@@ -71,9 +77,9 @@ public:
 				break;
 			}
 		}
-		return m_State == END;
+		return m_State == END ? ENCODE_SUCCEED : ENCODE_TO_END;
 	}
-	bool Feed(CodePoint::VALUE_TYPE codePoint) {
+	EncodeResult Feed(CodePoint::VALUE_TYPE codePoint) {
 		m_CodePoint = codePoint;
 		m_State = ((codePoint >= maxSingleChar) ? DOUBLE_BEGIN : SINGLE_BEGIN);
 		if (m_CurrentPosition < m_EndPosition) {
@@ -97,7 +103,7 @@ public:
 				}
 			} while (m_CurrentPosition < m_EndPosition && m_State != END);
 		}
-		return m_State == END;
+		return m_State == END ? ENCODE_SUCCEED : ENCODE_TO_END;
 	}
 };
 
@@ -137,6 +143,9 @@ public:
 	const char16_t* GetCurrentPosition() {
 		return m_CurrentPosition;
 	}
+	const char16_t* GetEndPosition() {
+		return m_EndPosition;
+	}
 	const MoveResult Move() {
 		switch (m_State) {
 		case NEW_CHAR_BEGIN: {
@@ -175,6 +184,70 @@ public:
 	CodePoint::VALUE_TYPE GetCodePoint() {
 		return m_PartialCodePoint;
 	}
+	SyncResult SyncForward() {
+		while (m_CurrentPosition < m_EndPosition) {
+			char16_t current = *m_CurrentPosition;
+			switch (m_State) {
+			case NEW_CHAR_BEGIN:
+				if (current < surfixStart || current > surfixEnd) {
+					return SyncResult::SUCCEED;
+				}
+				++m_CurrentPosition;
+				m_State = PREFIX_READ;
+				break;
+			case PREFIX_READ:
+				if (current < surfixStart || current > surfixEnd) {
+					return SyncResult::SUCCEED;
+				}
+				return SyncResult::FAILD;
+			}
+		}
+		return SyncResult::REACH_END;
+	}
+	SyncResult SyncBackward() {
+		while (m_CurrentPosition < m_EndPosition) {
+			char16_t current = *(m_EndPosition - 1);
+			switch (m_State) {
+			case NEW_CHAR_BEGIN:
+				if (current < surfixStart || current > surfixEnd) {
+					return SyncResult::SUCCEED;
+				}
+				--m_EndPosition;
+				m_State = PREFIX_READ;
+				break;
+			case PREFIX_READ:
+				if (current < surfixStart || current > surfixEnd) {
+					return SyncResult::SUCCEED;
+				}
+				return SyncResult::FAILD;
+			}
+		}
+		return SyncResult::REACH_END;
+	}
+};
+
+class Utf16Synchronizer :
+	public CodingSynchronizer<char16_t> {
+private:
+	Utf16DataDecoder m_Decoder;
+
+public:
+	virtual SyncResult TrySyncToNextStartFromBegin(const Buffer<char16_t> buffer, std::size_t &syncIndex) {
+		m_Decoder.ResetBuffer(buffer);
+		SyncResult result = m_Decoder.SyncForward();
+		if (result != SyncResult::REACH_END) {
+			syncIndex = m_Decoder.GetCurrentPosition() - buffer.GetAddress();
+		}
+		return result;
+	}
+	virtual SyncResult TrySyncToPreviousStartFromEnd(const Buffer<char16_t> buffer, std::size_t &syncIndex) {
+		m_Decoder.ResetBuffer(buffer);
+		SyncResult result = m_Decoder.SyncBackward();
+		if (result != SyncResult::REACH_END) {
+			syncIndex = (m_Decoder.GetEndPosition() - buffer.GetAddress()) - 1;
+		}
+		return result;
+	}
 };
 
 class Utf8DataEncoder {
@@ -199,7 +272,7 @@ public:
 	const char* GetCurrentPosition() {
 		return m_CurrentPosition;
 	}
-	bool Flush() {
+	EncodeResult Flush() {
 		while (m_CurrentPosition < m_EndPosition && m_LeftBytes > 0)
 		{
 			*m_CurrentPosition = char(m_CodePoint >> (sizeof(CodePoint::VALUE_TYPE) * 8 - 8));
@@ -209,9 +282,9 @@ public:
 			m_CodePoint &= ~(3 << (sizeof(CodePoint::VALUE_TYPE) * 8 - 2));
 			m_CodePoint |= (2 << (sizeof(CodePoint::VALUE_TYPE) * 8 - 2));
 		}
-		return m_LeftBytes == 0;
+		return m_LeftBytes == 0 ? ENCODE_SUCCEED : ENCODE_TO_END;
 	}
-	bool Feed(CodePoint::VALUE_TYPE codePoint) {
+	EncodeResult Feed(CodePoint::VALUE_TYPE codePoint) {
 		m_CodePoint = codePoint;
 		if (codePoint <= BYTE_1_END) {
 			m_LeftBytes = 1;
@@ -242,7 +315,7 @@ public:
 				m_CodePoint |= (2 << (sizeof(CodePoint::VALUE_TYPE) * 8 - 2));
 			} while (m_CurrentPosition < m_EndPosition && m_LeftBytes > 0);
 		}
-		return m_LeftBytes == 0;
+		return m_LeftBytes == 0 ? ENCODE_SUCCEED : ENCODE_TO_END;
 	}
 };
 
@@ -276,6 +349,9 @@ public:
 				return MOVE_SUCCEED;
 			}
 			else if ((next & 0xE0) == 0xC0) {
+				if ((next & 0xFE) == 0xC0) {
+					return MOVE_FAILED;
+				}
 				m_PartialCodePoint = CodePoint::VALUE_TYPE(next & 0x1F);
 				m_LeftCharCount = 1;
 			}
@@ -318,38 +394,118 @@ public:
 	}
 };
 
+class Utf32DataEncoder {
+private:
+	static constexpr CodePoint::VALUE_TYPE invalid = 0x110000;
+	CodePoint::VALUE_TYPE m_CodePoint;
+	char32_t *m_CurrentPosition;
+	char32_t *m_EndPosition;
+
+public:
+	Utf32DataEncoder() :
+		m_CodePoint(invalid) {
+	}
+	void ResetBuffer(const Buffer<char32_t> &sourceBuffer) {
+		m_CurrentPosition = sourceBuffer.GetAddress();
+		m_EndPosition = m_CurrentPosition + sourceBuffer.GetLength();
+	}
+	const char32_t* GetCurrentPosition() {
+		return m_CurrentPosition;
+	}
+	EncodeResult Flush() {
+		if (m_CodePoint == invalid) {
+			return ENCODE_SUCCEED;
+		}
+		if (m_CurrentPosition < m_EndPosition) {
+			*m_CurrentPosition = char32_t(m_CodePoint);
+			return ENCODE_SUCCEED;
+		}
+		return ENCODE_TO_END;
+	}
+	EncodeResult Feed(CodePoint::VALUE_TYPE codePoint) {
+		if (m_CurrentPosition < m_EndPosition) {
+			*m_CurrentPosition = char32_t(m_CodePoint);
+			return ENCODE_SUCCEED;
+		}
+		m_CodePoint = codePoint;
+		return ENCODE_TO_END;
+	}
+};
+
+class Utf32DataDecoder {
+private:
+	const char32_t *m_CurrentPosition;
+	const char32_t *m_EndPosition;
+	CodePoint::VALUE_TYPE m_CodePoint;
+	std::size_t m_LeftCharCount;
+
+public:
+	Utf32DataDecoder() :
+		m_LeftCharCount(0) {
+	}
+	void ResetBuffer(const Buffer<char32_t> &sourceBuffer) {
+		m_CurrentPosition = sourceBuffer.GetAddress();
+		m_EndPosition = m_CurrentPosition + sourceBuffer.GetLength();
+	}
+	const char32_t* GetCurrentPosition() {
+		return m_CurrentPosition;
+	}
+	const MoveResult Move() {
+		if (m_CurrentPosition < m_EndPosition) {
+			m_CodePoint = *m_CurrentPosition;
+			if (m_CodePoint > 0x10FFFF || (m_CodePoint >= 0xD800 && m_CodePoint <= 0xDFFF)) {
+				return MOVE_FAILED;
+			}
+			return MOVE_SUCCEED;
+		}
+		return MOVE_TO_END_WHOLE_CHAR;
+	}
+	CodePoint::VALUE_TYPE GetCodePoint() {
+		return m_CodePoint;
+	}
+};
+
 class Utf16ToUtf8Converter :
 	public CodingConverter<char16_t, char> {
 private:
 	Utf16DataDecoder m_Decoder;
 	Utf8DataEncoder m_Encoder;
 
+	inline void OutputDetail(const Buffer<char16_t> &sourceBuffer, Buffer<char> &destBuffer, ConvertDetail &detail) {
+		detail.m_ElementUsedInSource = m_Decoder.GetCurrentPosition() - sourceBuffer.GetAddress();
+		detail.m_ElementUsedInDest = m_Encoder.GetCurrentPosition() - destBuffer.GetAddress();
+	}
+
 public:
-	virtual ConvertResult TryConvert(const Buffer<char16_t> sourceBuffer, Buffer<char> destBuffer) {
+	virtual ConvertResult TryConvert(const Buffer<char16_t> sourceBuffer, Buffer<char> destBuffer, ConvertDetail &detail) {
 		m_Decoder.ResetBuffer(sourceBuffer);
 		m_Encoder.ResetBuffer(destBuffer);
-		bool notReachEnd = m_Encoder.Flush();
-		while (notReachEnd) {
+		EncodeResult encodeResult = m_Encoder.Flush();
+		while (encodeResult == ENCODE_SUCCEED) {
 			MoveResult result = m_Decoder.Move();
 			switch (result) {
 			case MOVE_FAILED: {
-				ConvertResult returnResult(m_Decoder.GetCurrentPosition() - sourceBuffer.GetAddress());
-				return returnResult;
+				OutputDetail(sourceBuffer, destBuffer, detail);
+				return ConvertResult::FAILED;
 			}
 			case MOVE_TO_END_WHOLE_CHAR: {
-				ConvertResult returnResult(m_Decoder.GetCurrentPosition() - sourceBuffer.GetAddress(), m_Encoder.GetCurrentPosition() - destBuffer.GetAddress(), ConvertFurtherAction::COMPLETE);
-				return returnResult;
+				OutputDetail(sourceBuffer, destBuffer, detail);
+				return ConvertResult::COMPLETE;
 			}
 			case MOVE_TO_END_HALF_CHAR: {
-				ConvertResult returnResult(m_Decoder.GetCurrentPosition() - sourceBuffer.GetAddress(), m_Encoder.GetCurrentPosition() - destBuffer.GetAddress(), ConvertFurtherAction::NEED_MORE_INPUT);
-				return returnResult;
+				OutputDetail(sourceBuffer, destBuffer, detail);
+				return ConvertResult::NEED_MORE_INPUT;
 			}
 			default:
-				notReachEnd = m_Encoder.Feed(m_Decoder.GetCodePoint());
+				encodeResult = m_Encoder.Feed(m_Decoder.GetCodePoint());
 			}
 		}
-		ConvertResult returnResult(m_Decoder.GetCurrentPosition() - sourceBuffer.GetAddress(), m_Encoder.GetCurrentPosition() - destBuffer.GetAddress(), ConvertFurtherAction::NEED_MORE_OUTPUT_BUFFER);
-		return returnResult;
+		if (encodeResult == UNABLE_TO_ENCODE) {
+			OutputDetail(sourceBuffer, destBuffer, detail);
+			return ConvertResult::FAILED;
+		}
+		OutputDetail(sourceBuffer, destBuffer, detail);
+		return ConvertResult::NEED_MORE_OUTPUT_BUFFER;
 	}
 };
 
@@ -359,32 +515,41 @@ private:
 	Utf8DataDecoder m_Decoder;
 	Utf16DataEncoder m_Encoder;
 
+	inline void OutputDetail(const Buffer<char> &sourceBuffer, Buffer<char16_t> &destBuffer, ConvertDetail &detail) {
+		detail.m_ElementUsedInSource = m_Decoder.GetCurrentPosition() - sourceBuffer.GetAddress();
+		detail.m_ElementUsedInDest = m_Encoder.GetCurrentPosition() - destBuffer.GetAddress();
+	}
+
 public:
-	virtual ConvertResult TryConvert(const Buffer<char> sourceBuffer, Buffer<char16_t> destBuffer) {
+	virtual ConvertResult TryConvert(const Buffer<char> sourceBuffer, Buffer<char16_t> destBuffer, ConvertDetail &detail) {
 		m_Decoder.ResetBuffer(sourceBuffer);
 		m_Encoder.ResetBuffer(destBuffer);
-		bool notReachEnd = m_Encoder.Flush();
-		while (notReachEnd) {
+		EncodeResult encodeResult = m_Encoder.Flush();
+		while (encodeResult == ENCODE_SUCCEED) {
 			MoveResult result = m_Decoder.Move();
 			switch (result) {
 			case MOVE_FAILED: {
-				ConvertResult returnResult(m_Decoder.GetCurrentPosition() - sourceBuffer.GetAddress());
-				return returnResult;
+				OutputDetail(sourceBuffer, destBuffer, detail);
+				return ConvertResult::FAILED;
 			}
 			case MOVE_TO_END_WHOLE_CHAR: {
-				ConvertResult returnResult(m_Decoder.GetCurrentPosition() - sourceBuffer.GetAddress(), m_Encoder.GetCurrentPosition() - destBuffer.GetAddress(), ConvertFurtherAction::COMPLETE);
-				return returnResult;
+				OutputDetail(sourceBuffer, destBuffer, detail);
+				return ConvertResult::COMPLETE;
 			}
 			case MOVE_TO_END_HALF_CHAR: {
-				ConvertResult returnResult(m_Decoder.GetCurrentPosition() - sourceBuffer.GetAddress(), m_Encoder.GetCurrentPosition() - destBuffer.GetAddress(), ConvertFurtherAction::NEED_MORE_INPUT);
-				return returnResult;
+				OutputDetail(sourceBuffer, destBuffer, detail);
+				return ConvertResult::NEED_MORE_INPUT;
 			}
 			default:
-				notReachEnd = m_Encoder.Feed(m_Decoder.GetCodePoint());
+				encodeResult = m_Encoder.Feed(m_Decoder.GetCodePoint());
 			}
 		}
-		ConvertResult returnResult(m_Decoder.GetCurrentPosition() - sourceBuffer.GetAddress(), m_Encoder.GetCurrentPosition() - destBuffer.GetAddress(), ConvertFurtherAction::NEED_MORE_OUTPUT_BUFFER);
-		return returnResult;
+		if (encodeResult == UNABLE_TO_ENCODE) {
+			OutputDetail(sourceBuffer, destBuffer, detail);
+			return ConvertResult::FAILED;
+		}
+		OutputDetail(sourceBuffer, destBuffer, detail);
+		return ConvertResult::NEED_MORE_OUTPUT_BUFFER;
 	}
 };
 
