@@ -40,14 +40,6 @@ public:
 	virtual ~CodingSynchronizer() { }
 };
 
-template<typename CODE_TYPE>
-class CodingSynchronizer {
-public:
-	virtual SyncResult TrySyncToNextStartFromBegin(const Buffer<CODE_TYPE> buffer, std::size_t &syncIndex) = 0;
-	virtual SyncResult TrySyncToPreviousStartFromEnd(const Buffer<CODE_TYPE> buffer, std::size_t &syncIndex) = 0;
-	virtual ~CodingSynchronizer() { }
-};
-
 template<typename FROM_TYPE, typename TO_TYPE>
 class CodingConverter {
 public:

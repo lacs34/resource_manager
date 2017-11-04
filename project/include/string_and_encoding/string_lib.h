@@ -132,7 +132,7 @@ public:
 	}
 
 	template<typename FROM_CHAR_TRAITS, typename TO_CHAR_TRAITS>
-	static Buffer<typename TO_CHAR_TRAITS::CHAR_TYPE> ConvertEncoding(SmartPointer<Iterator<typename FROM_CHAR_TRAITS::CHAR_TYPE>> sourceString) {
+	static Buffer<typename TO_CHAR_TRAITS::CHAR_TYPE> ConvertEncoding(Buffer<typename FROM_CHAR_TRAITS::CHAR_TYPE> sourceString) {
 		Converter<FROM_CHAR_TRAITS, TO_CHAR_TRAITS> converter;
 		return Convert(converter, sourceString);
 	}

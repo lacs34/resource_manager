@@ -553,9 +553,29 @@ public:
 	}
 };
 
-template<typename FROM_TYPE, typename TO_TYPE>
-Buffer<TO_TYPE> Convert(CodingConverter<FROM_TYPE, TO_TYPE> &converter, SmartPointer<Iterator<FROM_TYPE>> source) {
-	StdArray<TO_TYPE> result(10);
+template<typename FROM_TYPE, typename TO_TYPE, std::size_t BUFFER_SIZE = 20>
+Buffer<TO_TYPE> Convert(CodingConverter<FROM_TYPE, TO_TYPE> &converter, Buffer<FROM_TYPE> source) {
+	ScopedArray<TO_TYPE, BUFFER_SIZE> staticBuffer;
+	std::vector<Buffer<TO_TYPE>> outputs;
+	Buffer<TO_TYPE> buffer(staticBuffer);
+	ConvertDetail detail;
+	ConvertResult result = converter.TryConvert(source, buffer, detail);
+	while (result == ConvertResult::NEED_MORE_OUTPUT_BUFFER) {
+		outputs.push_back(buffer);
+		StdArray<TO_TYPE> newBuffer(BUFFER_SIZE);
+		buffer = newBuffer;
+		result = converter.TryConvert(source, buffer, detail);
+	}
+	const std::size_t outputCount = outputs.size();
+	StdArray<TO_TYPE> result(BUFFER_SIZE * outputCount + detail.m_ElementUsedInDest);
+	for (std::size_t i = 0; i < outputCount; ++i) {
+		std::size_t bufferStart = BUFFER_SIZE * i;
+		result.GetSubBuffer(bufferStart, bufferStart + BUFFER_SIZE).CopyFrom(outputs[i]);
+	}
+	if (detail.m_ElementUsedInDest > 0) {
+		std::size_t bufferStart = BUFFER_SIZE * outputCount;
+		result.GetSubBuffer(bufferStart, bufferStart + detail.m_ElementUsedInDest).CopyFrom(buffer.GetSubBuffer(0, detail.m_ElementUsedInDest));
+	}
 	return result;
 }
 
